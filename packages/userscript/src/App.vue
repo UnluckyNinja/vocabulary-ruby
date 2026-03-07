@@ -6,6 +6,7 @@ import { DictionaryLoader } from './engine/loader';
 import { createMatcher } from './engine/matcher';
 import { DOMObserver } from './engine/observer';
 import { CompressedStorage } from './utils/storage';
+import { GM_registerMenuCommand } from '$'
 
 const showSettings = ref(false);
 const observer = ref<DOMObserver | null>(null);

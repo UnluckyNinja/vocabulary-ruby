@@ -1,3 +1,4 @@
+import { GM_xmlhttpRequest } from '$';
 import { CompressedStorage } from '../utils/storage';
 
 export class DictionaryLoader {

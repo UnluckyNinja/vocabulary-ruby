@@ -2,18 +2,23 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import monkey, { cdn } from 'vite-plugin-monkey';
 import UnoCSS from 'unocss/vite';
+import { presetWind4 } from 'unocss';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
-    UnoCSS(),
+    UnoCSS({
+      presets: [
+        presetWind4()
+      ]
+    }),
     monkey({
       entry: 'src/main.ts',
       userscript: {
         icon: 'https://vitejs.dev/logo.svg',
         namespace: 'npm/vite-plugin-monkey',
-        match: ['*://*/*'],
+        match: ['https://*/*'],
         name: 'Vocabulary Ruby',
         author: 'User',
         description: 'Auto-annotate dictionary words with ruby tags',

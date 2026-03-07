@@ -1,4 +1,5 @@
-import { strFromU8, strToU8, gzipSync, gunzipSync } from 'fflate';
+import { GM_getValue, GM_setValue } from '$';
+import { strFromU8, strToU8, zlibSync, unzlibSync } from 'fflate';
 
 /**
  * A wrapper around GM_storage that handles GZIP compression for large dictionary data.
@@ -12,12 +13,10 @@ export class CompressedStorage {
   static async set(key: string, value: any): Promise<void> {
     try {
       const jsonString = JSON.stringify(value);
-      const uint8Array = strToU8(jsonString);
-      const compressed = gzipSync(uint8Array);
-      
+
       // GM_setValue typically handles strings well. We can store as Base64 string to be safe across engines,
       // or directly if the engine supports binary blobs. Base64 is safest.
-      const base64 = this.uint8ToBase64(compressed);
+      const base64 = unicodeToBase64(jsonString);
       await GM_setValue(key, base64);
     } catch (error) {
       console.error(`[VocabularyRuby] Failed to save key "${key}":`, error);
@@ -35,34 +34,34 @@ export class CompressedStorage {
       const base64 = await GM_getValue(key, null);
       if (!base64) return null;
 
-      const compressed = this.base64ToUint8(base64);
-      const decompressed = gunzipSync(compressed);
-      const jsonString = strFromU8(decompressed);
-      return JSON.parse(jsonString) as T;
+      const decompressed = base64ToUnicode(base64);
+      return JSON.parse(decompressed) as T;
     } catch (error) {
       console.error(`[VocabularyRuby] Failed to load key "${key}":`, error);
       return null;
     }
   }
+}
 
-  // --- Helpers for Base64 conversion (since Buffer is not available in browser/userscript env) ---
+// Credits: https://github.com/vuejs/repl/blob/main/src/utils.ts
+export function unicodeToBase64(text: string): string {
+  const buffer = strToU8(text)
+  const zipped = zlibSync(buffer, { level: 9 })
+  const binary = strFromU8(zipped, true)
+  return btoa(binary)
+}
 
-  private static uint8ToBase64(bytes: Uint8Array): string {
-    let binary = '';
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
+export function base64ToUnicode(base64: string): string {
+  const binary = atob(base64)
+
+  // zlib header (x78), level 9 (xDA)
+  if (binary.startsWith('\x78\xDA')) {
+    const buffer = strToU8(binary, true)
+    const unzipped = unzlibSync(buffer)
+    return strFromU8(unzipped)
   }
 
-  private static base64ToUint8(base64: string): Uint8Array {
-    const binaryString = window.atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-  }
+  // old unicode hacks for backward compatibility
+  // https://base64.guru/developers/javascript/examples/unicode-strings
+  return decodeURIComponent(escape(binary))
 }
