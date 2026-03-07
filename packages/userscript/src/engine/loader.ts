@@ -78,7 +78,11 @@ export class DictionaryLoader {
   /**
    * Loads the dictionary from storage.
    */
-  static async loadDictionary(): Promise<Record<string, string> | null> {
-    return await CompressedStorage.get<Record<string, string>>(this.STORAGE_KEY);
+  static async loadDictionary(): Promise<Map<string, string> | null> {
+    const dictObject = await CompressedStorage.get<Record<string, string>>(this.STORAGE_KEY);
+    if (dictObject) {
+      return new Map(Object.entries(dictObject))
+    }
+    return null
   }
 }

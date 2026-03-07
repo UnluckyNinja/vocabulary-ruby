@@ -23,13 +23,13 @@ const initObserver = async () => {
 
   // Load dictionary
   const dict = await DictionaryLoader.loadDictionary();
-  if (!dict || Object.keys(dict).length === 0) {
+  if (!dict || dict.size === 0) {
     console.log('[VocabularyRuby] No dictionary found. Open settings to add CSV URLs.');
     return;
   }
 
   // Create matcher and observer
-  const matcher = createMatcher(dict);
+  const matcher = await createMatcher(dict);
   observer.value = new DOMObserver(matcher);
   observer.value.start();
 };

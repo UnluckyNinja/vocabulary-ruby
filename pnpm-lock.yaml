@@ -16,6 +16,9 @@ importers:
       '@unocss/preset-wind4':
         specifier: ^66.6.6
         version: 66.6.6
+      dawg-search:
+        specifier: ^2.0.1
+        version: 2.0.1
       fflate:
         specifier: ^0.8.2
         version: 0.8.2
@@ -762,6 +765,9 @@ packages:
 
   cuint@0.2.2:
     resolution: {integrity: sha512-d4ZVpCW31eWwCMe1YT3ur7mUDnTXbgwyzaL320DrcRT45rfjYxkt5QWLrmOJ+/UEAI2+fQgKe/fCjR8l4TpRgw==}
+
+  dawg-search@2.0.1:
+    resolution: {integrity: sha512-+YbvYaBe1pPdg2AlzLjlDiGRkSTHS7KApTGAlqvpamEwZU1dybLH9BNNoZktxSuR1i4sL/KMy8rNIv8mf0G1nA==}
 
   default-browser-id@5.0.1:
     resolution: {integrity: sha512-x1VCxdX4t+8wVfd1so/9w+vQ4vx7lKd2Qp5tDRutErwmR85OgmfX7RlLRMWafRMY7hbEiXIbudNrjOAPa/hL8Q==}
@@ -1770,6 +1776,8 @@ snapshots:
   csstype@3.2.3: {}
 
   cuint@0.2.2: {}
+
+  dawg-search@2.0.1: {}
 
   default-browser-id@5.0.1: {}
 
