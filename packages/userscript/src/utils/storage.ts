@@ -10,14 +10,14 @@ export class CompressedStorage {
    * @param key The storage key.
    * @param value The value to store (will be JSON stringified).
    */
-  static async set(key: string, value: any): Promise<void> {
+  static set(key: string, value: any): void {
     try {
       const jsonString = JSON.stringify(value);
 
       // GM_setValue typically handles strings well. We can store as Base64 string to be safe across engines,
       // or directly if the engine supports binary blobs. Base64 is safest.
       const base64 = unicodeToBase64(jsonString);
-      await GM_setValue(key, base64);
+      GM_setValue(key, base64);
     } catch (error) {
       console.error(`[VocabularyRuby] Failed to save key "${key}":`, error);
       throw error;
@@ -29,9 +29,9 @@ export class CompressedStorage {
    * @param key The storage key.
    * @returns The parsed value, or null if not found.
    */
-  static async get<T>(key: string): Promise<T | null> {
+  static get<T>(key: string): T | null {
     try {
-      const base64 = await GM_getValue(key, null);
+      const base64 = GM_getValue(key, null);
       if (!base64) return null;
 
       const decompressed = base64ToUnicode(base64);
