@@ -1,18 +1,17 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import monkey, { cdn } from 'vite-plugin-monkey';
+import Inspect from 'vite-plugin-inspect'
 import UnoCSS from 'unocss/vite';
-import { presetWind4 } from 'unocss';
+import unocssInline from 'unocss-inline';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    Inspect(),
     vue(),
-    UnoCSS({
-      presets: [
-        presetWind4()
-      ]
-    }),
+    UnoCSS(),
+    unocssInline(),
     monkey({
       entry: 'src/main.ts',
       userscript: {

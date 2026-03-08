@@ -6,13 +6,13 @@ import bodyStyle from './body.css?inline'
 
 // styles for widget
 import styleCss from './style.css?inline'
-import unoCss from 'virtual:uno.css?inline'
+import unoCss from 'unocss-inline/style'
 import { GM_addStyle } from '$';
 
 // wrap widget in shadow DOM to avoid polluting page
-const wrapper = document.createElement('div')
-document.body.append(wrapper)
-const shadow = wrapper.attachShadow({mode: 'open'})
+const shadow = document.body
+  .appendChild(document.createElement('div'))
+  .attachShadow({ mode: 'open' });
 const element = document.createElement('div')
 shadow.appendChild(element)
 
@@ -28,20 +28,28 @@ function addStyle(content: string){
 
 GM_addStyle(bodyStyle)
 
-const unoEle = addStyle(unoCss)
+// @property unfortunately will be ignored in shadow DOM,
+// so we have to move them to parent.
+// there are some other directives in it, I guess it won't hurt though.
+const sheet = new CSSStyleSheet()
+const mo = new MutationObserver(()=>{
+  sheet.replaceSync(unoCss.textContent.split('\n').filter(it=>it.startsWith('@') && it.endsWith('}')).join('\n'))
+})
+mo.observe(unoCss, {
+  childList: true,
+})
+
+shadow.appendChild(unoCss)
+document.adoptedStyleSheets.push(sheet)
 const styleEle = addStyle(styleCss)
 
 // HMR for styles
 if (import.meta.hot) {
-  import.meta.hot!.accept([
-    './style.css?inline', 
-    '/__uno.css?inline',
-  ],([styleCss, unoCss])=>{
+  import.meta.hot.accept([
+    './style.css?inline'
+  ],([styleCss])=>{
     if (styleCss) {
       styleEle.textContent = styleCss.default
-    }
-    if (unoCss) {
-      unoEle.textContent = unoCss.default
     }
   })
 }

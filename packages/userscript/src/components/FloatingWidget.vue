@@ -1,41 +1,62 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const emit = defineEmits<{
-  (e: 'open-settings'): void
+  'settings': []
+  'toggle': []
 }>();
 
-const isHovered = ref(false);
+const props = defineProps<{
+  state: 'ready' | 'running' | 'reset'
+}>()
+
+const icon = computed(()=>{
+  switch(props.state) {
+    case 'ready': {
+      return 'i-carbon:play'
+    }
+    case 'running': {
+      return 'i-carbon:hourglass'
+    }
+    case 'reset': {
+      return 'i-carbon:reset'
+    }
+  }
+})
+
+const isOpen = ref(false)
 </script>
 
 <template>
   <div
-    class="fixed top-4 right-4 z-[2147483647] flex items-center justify-center transition-all duration-300 ease-in-out cursor-pointer group"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
-    @click="emit('open-settings')"
-  >
+    class="fixed top-4 right-0 z-[2147483647] flex items-center justify-center transition-all duration-300 ease-in-out"
+    :class="{ 'translate-x-0': isOpen, 'translate-x-full': !isOpen}"
+    >
     <!-- Background Blur/Glass -->
-    <div 
-      class="absolute inset-0 bg-white/20 backdrop-blur-md rounded-full shadow-lg border border-white/30 transition-all duration-300"
-      :class="{ 'w-12 h-12': !isHovered, 'w-32 h-12': isHovered }"
-    ></div>
+    <div class="bg-white/20 backdrop-blur-md relative right-4 rounded-full h-12
+      shadow-lg transition-all duration-300 overflow-clip"
+      :class="{'translate-x-0 hover:-translate-x-2': !isOpen }">
 
-    <!-- Icon -->
-    <div class="relative flex items-center justify-center w-full h-full px-3">
-      <div class="i-carbon-translate text-xl text-gray-800 dark:text-white transition-opacity duration-300" :class="{ 'opacity-100': !isHovered, 'opacity-0': isHovered }"></div>
-      
-      <!-- Expanded Text -->
-      <span 
-        class="absolute text-sm font-medium text-gray-800 dark:text-white whitespace-nowrap opacity-0 transition-opacity duration-300"
-        :class="{ 'opacity-100 delay-100': isHovered }"
-      >
-        Settings
-      </span>
+      <!-- Icon -->
+      <div class="relative flex items-center justify-around w-full h-full"
+        :class="[isOpen ? '' : '']">
+        <button class="text-2xl px-2 h-full hover:bg-white/10">
+          <div :class="{ 'i-carbon:chevron-left relative right-2': !isOpen, 'i-carbon:chevron-right': isOpen }"
+            @click="isOpen = !isOpen">
+          </div>
+        </button>
+        <div class="w-0 h-60% border border-white/30"></div>
+        <button class="text-2xl px-2 h-full hover:bg-white/10"
+          @click="emit('toggle')"
+          :disabled="state === 'running'">
+          <div :class="[icon, state === 'running' ? 'animate-pulse cursor-wait' : '']"></div>
+        </button>
+        <div class="w-0 h-60% border border-white/30"></div>
+        <button class="text-2xl px-2 h-full hover:bg-white/10"
+          @click="emit('settings')">
+          <div class="i-carbon:settings"></div>
+        </button>
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Ensure icon works if using UnoCSS icons preset */
-</style>

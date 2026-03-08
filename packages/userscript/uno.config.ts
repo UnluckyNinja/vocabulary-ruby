@@ -1,4 +1,4 @@
-import { defineConfig, presetWind4, presetIcons } from 'unocss'
+import { defineConfig, presetWind4, presetIcons, transformerDirectives } from 'unocss'
 
 export default defineConfig({
   presets: [
@@ -8,4 +8,7 @@ export default defineConfig({
       cdn: 'https://esm.sh/', // Use CDN for icons in userscript environment if needed, or bundle them
     }),
   ],
+  transformers: [
+    transformerDirectives(),
+  ]
 })

@@ -72,7 +72,7 @@ export class DictionaryLoader {
 
     // Convert Map to object for JSON serialization
     const dictObject = Object.fromEntries(combinedMap);
-    await CompressedStorage.set(this.STORAGE_KEY, dictObject);
+    CompressedStorage.set(this.STORAGE_KEY, dictObject);
     console.log(`[VocabularyRuby] Saved ${combinedMap.size} entries to storage.`);
   }
 
@@ -80,7 +80,7 @@ export class DictionaryLoader {
    * Loads the dictionary from storage.
    */
   static async loadDictionary(): Promise<Map<string, string> | null> {
-    const dictObject = await CompressedStorage.get<Record<string, string>>(this.STORAGE_KEY);
+    const dictObject = CompressedStorage.get<Record<string, string>>(this.STORAGE_KEY);
     if (dictObject) {
       return new Map(Object.entries(dictObject))
     }

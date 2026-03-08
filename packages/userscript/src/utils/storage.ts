@@ -29,16 +29,16 @@ export class CompressedStorage {
    * @param key The storage key.
    * @returns The parsed value, or null if not found.
    */
-  static get<T>(key: string): T | null {
+  static get<T>(key: string): T | undefined {
     try {
-      const base64 = GM_getValue(key, null);
-      if (!base64) return null;
+      const base64 = GM_getValue(key, undefined);
+      if (!base64) return undefined;
 
       const decompressed = base64ToUnicode(base64);
       return JSON.parse(decompressed) as T;
     } catch (error) {
       console.error(`[VocabularyRuby] Failed to load key "${key}":`, error);
-      return null;
+      return undefined;
     }
   }
 }
