@@ -1,4 +1,4 @@
-import { GM_getValue, GM_setValue } from '$';
+import { GM_deleteValue, GM_getValue, GM_setValue } from '$';
 import { strFromU8, strToU8, zlibSync, unzlibSync } from 'fflate';
 
 /**
@@ -40,6 +40,10 @@ export class CompressedStorage {
       console.error(`[VocabularyRuby] Failed to load key "${key}":`, error);
       return undefined;
     }
+  }
+
+  static delete(key: string) {
+    GM_deleteValue(key)
   }
 }
 

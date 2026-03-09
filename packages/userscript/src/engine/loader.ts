@@ -1,89 +1,94 @@
-import { GM_xmlhttpRequest } from '$';
 import { CompressedStorage } from '../utils/storage';
+import { DictionarySource } from '../utils/configType';
+import { csvParseRows } from 'd3-dsv';
+import { fetchContent } from '../utils/network';
 
-export class DictionaryLoader {
-  private static STORAGE_KEY = 'vocabulary_ruby_dict';
+const STORAGE_PREFIX = 'dict:'
 
-  /**
-   * Fetches a CSV file from a URL.
-   */
-  static async fetchCSV(url: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      GM_xmlhttpRequest({
-        method: 'GET',
-        url: url,
-        onload: (response) => {
-          if (response.status >= 200 && response.status < 300) {
-            resolve(response.responseText);
-          } else {
-            reject(new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`));
-          }
-        },
-        onerror: (err) => reject(err),
-      });
-    });
+
+/**
+ * Parses content into a Map. Supports JSON (object) and CSV.
+ */
+export function parseContent(content: string): Map<string, string> | undefined {
+  const trimmed = content.trim();
+
+  // Check if it's JSON
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      const data = JSON.parse(trimmed);
+      if (Array.isArray(data)) {
+        const map = new Map(data)
+        return map as Map<string, string>;
+      } else if (typeof data === 'object' && data !== null) {
+        // If it's an object, assume key-value pairs
+        const map = new Map(Object.entries(data))
+        return map as Map<string, string>;
+      }
+    } catch (e) {
+      // Fallback to CSV if JSON parsing fails
+      console.warn(e)
+      console.warn('Trying to parse source as JSON failed.')
+    }
   }
 
-  /**
-   * Parses CSV content into a Map.
-   * Assumes simple key-value pairs (key,value) per line.
-   */
-  static parseCSV(csvContent: string): Map<string, string> {
-    const map = new Map<string, string>();
-    const lines = csvContent.split(/\r?\n/);
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-      
-      // Simple split by first comma, handling potential commas in value slightly better?
-      // Actually, for simple key-value dictionaries, let's assume standard CSV "key,value"
-      // If quotes are involved, a regex or parser is better.
-      // For now, let's stick to simple split, maybe user can improve if needed.
-      const parts = trimmed.split(',');
-      if (parts.length >= 2) {
-        const key = parts[0].trim();
-        const value = parts.slice(1).join(',').trim(); // Join rest in case value has commas
-        if (key && value) {
-          map.set(key, value);
-        }
-      }
-    }
+  // Default to CSV
+  try {
+    const map = new Map(csvParseRows(trimmed) as [string, string][])
     return map;
+  } catch (e) {
+    console.warn(e)
+    console.warn('Trying to parse dictionary source as CSV failed.')
   }
 
-  /**
-   * Processes multiple dictionary URLs, merges them, and saves to storage.
-   */
-  static async processDictionaries(urls: string[]): Promise<void> {
-    const combinedMap = new Map<string, string>();
+  console.error('Parsing dictionary failed.')
+  return
+}
 
-    for (const url of urls) {
-      try {
-        const content = await this.fetchCSV(url);
-        const map = this.parseCSV(content);
-        // Merge into combined map
-        map.forEach((value, key) => combinedMap.set(key, value));
-      } catch (error) {
-        console.error(`[VocabularyRuby] Error processing dictionary from ${url}:`, error);
-        // Continue processing other URLs? Or fail? Let's log and continue.
+/**
+ * Processes multiple dictionary sources, merges them.
+ */
+export async function processSources(sources: DictionarySource[]): Promise<Map<string, string>> {
+  const combinedMap = new Map<string, string>();
+
+  for (const source of sources) {
+    if (!source.enabled) continue;
+
+    try {
+      let content = '';
+      if (source.type === 'remote' && source.url) {
+        content = await fetchContent(source.url);
+      } else if (source.type === 'manual' && source.content) {
+        content = source.content;
       }
-    }
 
-    // Convert Map to object for JSON serialization
-    const dictObject = Object.fromEntries(combinedMap);
-    CompressedStorage.set(this.STORAGE_KEY, dictObject);
-    console.log(`[VocabularyRuby] Saved ${combinedMap.size} entries to storage.`);
+      if (content) {
+        const map = parseContent(content);
+        map?.forEach((value, key) => combinedMap.set(key, value));
+      }
+    } catch (error) {
+      console.error(`[VocabularyRuby] Error processing dictionary source "${source.name}":`, error);
+    }
   }
 
-  /**
-   * Loads the dictionary from storage.
-   */
-  static async loadDictionary(): Promise<Map<string, string> | null> {
-    const dictObject = CompressedStorage.get<Record<string, string>>(this.STORAGE_KEY);
-    if (dictObject) {
-      return new Map(Object.entries(dictObject))
-    }
-    return null
+  return combinedMap;
+}
+
+/**
+ * Saves the dictionary to storage.
+ */
+export function saveDictionary(key: string, dict: Map<string, string>) {
+  const dictObject = Object.fromEntries(dict);
+  CompressedStorage.set(STORAGE_PREFIX + key, dictObject);
+  console.log(`[VocabularyRuby] Saved ${dict.size} entries to storage.`);
+}
+
+/**
+ * Loads the dictionary from storage.
+ */
+export function loadDictionary(key: string): Map<string, string> | null {
+  const dictObject = CompressedStorage.get<Record<string, string>>(STORAGE_PREFIX+key);
+  if (dictObject) {
+    return new Map(Object.entries(dictObject))
   }
+  return null
 }

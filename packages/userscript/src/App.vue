@@ -1,48 +1,56 @@
 <script setup lang="ts">
-import { ref, onMounted, shallowRef, watch } from 'vue';
+import { ref, onMounted, shallowRef } from 'vue';
 import FloatingWidget from './components/FloatingWidget.vue';
 import SettingsDialog from './components/SettingsDialog.vue';
-import { DictionaryLoader } from './engine/loader';
 import { createMatcher, type Matcher } from './engine/matcher';
 import { DOMObserver } from './engine/observer';
-import { CompressedStorage } from './utils/storage';
+import { getActiveConfigs, loadRegistry } from './utils/config';
 import { GM_registerMenuCommand } from '$'
 
 const showSettings = ref(false);
 const matcher = shallowRef<Matcher | null>(null)
 const observer = shallowRef<DOMObserver | null>(null);
+const registry = loadRegistry()
 
 async function prepareMatcher() {
-  // Load dictionary
-  const dict = await DictionaryLoader.loadDictionary();
-  if (!dict || dict.size === 0) {
-    console.log('[VocabularyRuby] No dictionary found. Open settings to add CSV URLs.');
-    return null;
+  // Find active configs for current site
+  const activeConfigs = getActiveConfigs(window.location.href, registry.value);
+  
+  if (activeConfigs.length === 0) {
+    console.log('[VocabularyRuby] No active profiles match this site.');
+    return;
+  }
+
+  // Aggregate dictionaries
+  // const combinedMap = await processDictionaries(activeConfigs);
+  const combinedMap = new Map();
+  
+  if (combinedMap.size === 0) {
+    console.log('[VocabularyRuby] No entries found in active dictionaries.');
+    return;
   }
 
   // Create matcher
-  matcher.value = await createMatcher(dict);
+  matcher.value = await createMatcher(combinedMap);
 }
 
 const handleReload = async () => {
-  prepareMatcher()
-  toggleObserver(true);
+  await prepareMatcher()
+  if (matcher.value) {
+    toggleObserver(true);
+  }
 };
 
 const toggleObserver = (enable: boolean) => {
   changeState('running')
 
-  if (enable) {
-    if (!matcher.value) {
-      console.error('Matcher is null')
-      changeState('ready')
-      return
-    }
+  if (enable && matcher.value) {
     if (observer.value) {
       observer.value.stop();
       observer.value = null;
     }
     observer.value = new DOMObserver(matcher.value);
+    observer.value.start();
     changeState('reset')
   } else {
     if (observer.value) {
@@ -58,30 +66,33 @@ onMounted(async () => {
   GM_registerMenuCommand('Settings', () => {
     showSettings.value = true;
   });
-
-  await prepareMatcher()
-
-  // Check if enabled
-  const enabled = CompressedStorage.get<boolean>('vocabulary_ruby_enabled');
-  toggleObserver(!!enabled)
+  handleReload()
 });
-
+/**
+ * ready - can start process
+ * running - processing
+ * reset - proccessed can be reset to ready
+ */
 const state = ref<'ready' | 'running' | 'reset'>('running')
 function changeState(value: typeof state.value){
   state.value = value
 }
 
-const enabled = ref(false)
+// Note: No more global enabled watch. 
+// Changes in settings will trigger handleReload via emit.
 
-watch(enabled, (newVal)=>{
-  toggleObserver(newVal)
-})
-
+const handleToggle = () => {
+  if (state.value === 'ready') {
+    toggleObserver(true);
+  } else if (state.value === 'reset') {
+    toggleObserver(false);
+  }
+};
 </script>
 
 <template>
   <div>
-    <FloatingWidget :state="state" @toggle="enabled = !enabled" @settings="showSettings = !showSettings" />
+    <FloatingWidget :state="state" @toggle="handleToggle" @settings="showSettings = !showSettings" />
     <SettingsDialog 
       v-model:open="showSettings" 
       @reload-dictionary="handleReload"

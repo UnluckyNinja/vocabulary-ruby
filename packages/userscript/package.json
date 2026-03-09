@@ -11,6 +11,8 @@
   "dependencies": {
     "@unocss/preset-icons": "^66.6.6",
     "@unocss/preset-wind4": "^66.6.6",
+    "@vueuse/core": "^14.2.1",
+    "d3-dsv": "^3.0.1",
     "dawg-search": "^2.0.1",
     "fflate": "^0.8.2",
     "reka-ui": "^2.9.0",
@@ -19,11 +21,13 @@
     "vue": "^3.5.19"
   },
   "devDependencies": {
+    "@types/d3-dsv": "^3.0.7",
     "@vitejs/plugin-vue": "^6.0.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",
     "vite-plugin-inspect": "^11.3.3",
     "vite-plugin-monkey": "^7.1.1",
+    "vitest": "^4.0.18",
     "vue-tsc": "^3.0.6"
   }
 }
