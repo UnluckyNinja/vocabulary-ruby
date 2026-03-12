@@ -33,7 +33,7 @@ const isOpen = ref(false)
     :class="{ 'translate-x-0': isOpen, 'translate-x-full': !isOpen}"
     >
     <!-- Background Blur/Glass -->
-    <div class="bg-white/20 backdrop-blur-md relative right-4 rounded-full h-12
+    <div class="bg-blue-400/60 text-slate-700 backdrop-blur-md relative right-4 rounded-full h-12
       shadow-lg transition-all duration-300 overflow-clip"
       :class="{'translate-x-0 hover:-translate-x-2': !isOpen }">
 
