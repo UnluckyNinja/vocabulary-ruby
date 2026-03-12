@@ -1,5 +1,5 @@
 import { CompressedStorage } from '../utils/storage';
-import { DictionarySource } from '../utils/configType';
+import { DictionarySource } from '../config/configType';
 import { csvParseRows } from 'd3-dsv';
 import { fetchContent } from '../utils/network';
 
@@ -47,17 +47,15 @@ export function parseContent(content: string): Map<string, string> | undefined {
 /**
  * Processes multiple dictionary sources, merges them.
  */
-export async function processSources(sources: DictionarySource[]): Promise<Map<string, string>> {
+export async function processSources(sources: DictionarySource[]) {
   const combinedMap = new Map<string, string>();
-
+  const failed: DictionarySource[] = []
   for (const source of sources) {
-    if (!source.enabled) continue;
-
     try {
       let content = '';
-      if (source.type === 'remote' && source.url) {
-        content = await fetchContent(source.url);
-      } else if (source.type === 'manual' && source.content) {
+      if (source.isRemote && source.updateURL) {
+        content = await fetchContent(source.updateURL);
+      } else if (!source.isRemote && source.content) {
         content = source.content;
       }
 
@@ -66,29 +64,38 @@ export async function processSources(sources: DictionarySource[]): Promise<Map<s
         map?.forEach((value, key) => combinedMap.set(key, value));
       }
     } catch (error) {
+      failed.push(source)
       console.error(`[VocabularyRuby] Error processing dictionary source "${source.name}":`, error);
     }
   }
 
-  return combinedMap;
+  return {
+    dicts: combinedMap,
+    failed,
+  };
 }
 
 /**
  * Saves the dictionary to storage.
  */
-export function saveDictionary(key: string, dict: Map<string, string>) {
+export function saveDictionary(key: string, dict: Map<string, string> | undefined) {
+  if (!dict) {
+    CompressedStorage.delete(STORAGE_PREFIX + key);
+    console.info(`[VocabularyRuby] Dictionary of ID ${key} deleted.`);
+    return
+  }
   const dictObject = Object.fromEntries(dict);
   CompressedStorage.set(STORAGE_PREFIX + key, dictObject);
-  console.log(`[VocabularyRuby] Saved ${dict.size} entries to storage.`);
+  console.info(`[VocabularyRuby] Saved ${dict.size} entries to storage.`);
 }
 
 /**
  * Loads the dictionary from storage.
  */
-export function loadDictionary(key: string): Map<string, string> | null {
+export function loadDictionary(key: string): Map<string, string> {
   const dictObject = CompressedStorage.get<Record<string, string>>(STORAGE_PREFIX+key);
   if (dictObject) {
     return new Map(Object.entries(dictObject))
   }
-  return null
+  return new Map()
 }

@@ -17,10 +17,16 @@ export default defineConfig({
       userscript: {
         icon: 'https://vitejs.dev/logo.svg',
         namespace: 'npm/vite-plugin-monkey',
-        match: ['https://*/*'],
+        match: [
+          'https://*/*',
+        ],
         name: 'Vocabulary Ruby',
         author: 'User',
         description: 'Auto-annotate dictionary words with ruby tags',
+        connect: [
+          'https://docs.google.com/spreadsheets/d/e/*',
+          'https://*.googleusercontent.com/pub/*',
+        ],
         grant: [
           'GM_setValue',
           'GM_getValue',

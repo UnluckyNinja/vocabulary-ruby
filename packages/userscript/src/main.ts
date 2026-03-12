@@ -10,19 +10,15 @@ import unoCss from 'unocss-inline/style'
 import { GM_addStyle } from '$';
 
 // wrap widget in shadow DOM to avoid polluting page
-const shadow = document.body
-  .appendChild(document.createElement('div'))
-  .attachShadow({ mode: 'open' });
-const element = document.createElement('div')
-shadow.appendChild(element)
+import { shadowRoot, portalTarget } from './shadowRoot'
 
-createApp(App).mount(element)
+createApp(App).mount(portalTarget)
 
 // add styles to shadow DOM
 function addStyle(content: string){
   const cssEle = document.createElement('style')
   cssEle.textContent = content
-  shadow.appendChild(cssEle)
+  shadowRoot.appendChild(cssEle)
   return cssEle
 }
 
@@ -39,7 +35,7 @@ mo.observe(unoCss, {
   childList: true,
 })
 
-shadow.appendChild(unoCss)
+shadowRoot.appendChild(unoCss)
 document.adoptedStyleSheets.push(sheet)
 const styleEle = addStyle(styleCss)
 

@@ -4,8 +4,7 @@ export class DOMObserver {
   private matcher: Matcher;
   private observer: MutationObserver;
   private intersectionObserver: IntersectionObserver;
-  private pendingNodes: Set<Node> = new Set();
-  private processedNodes: WeakSet<Node> = new WeakSet();
+  private processedElements: WeakSet<Element> = new WeakSet();
 
   constructor(matcher: Matcher) {
     this.matcher = matcher;
@@ -47,7 +46,6 @@ export class DOMObserver {
   }
 
   private scanNode(node: Node) {
-    if (this.processedNodes.has(node)) return;
     
     // Skip script, style, existing ruby, etc.
     const parent = node.parentElement;
@@ -60,34 +58,11 @@ export class DOMObserver {
       parent.tagName === 'INPUT' ||
       parent.isContentEditable
     )) return;
+    if (parent && this.processedElements.has(parent)) return;
 
     if (node.nodeType === Node.TEXT_NODE) {
-      // Text node found. Check if it's visible?
-      // For now, let's process it directly or queue it?
-      // IntersectionObserver works on Elements, not Text nodes directly.
-      // So we observe the parent Element.
-      if (parent) {
-        // If parent is already observed, we might re-trigger.
-        // Actually, let's simplify: scan text nodes, if valid, check matches.
-        // If matches found, THEN inject.
-        // But matching might be expensive.
-        
-        // Strategy:
-        // 1. Find text nodes.
-        // 2. Check if parent is visible using IntersectionObserver.
-        // 3. If visible, process text.
-        
-        // Map parent element to its text nodes?
-        // Or just observe the parent.
+      if (node.nodeValue?.trim() && parent) {
         this.intersectionObserver.observe(parent);
-        // We need to associate the text node with this observation logic.
-        // Maybe store it on the element?
-        // Let's use a simpler approach: process immediately if "lazy" isn't strictly required for *finding*,
-        // but for *rendering*.
-        
-        // Actually, the requirement says "Lazy: Use IntersectionObserver to trigger actual translating".
-        // So:
-        this.pendingNodes.add(node);
       }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       // Recurse
@@ -101,24 +76,6 @@ export class DOMObserver {
         const element = entry.target;
         this.intersectionObserver.unobserve(element);
         
-        // Find pending text nodes that belong to this element
-        // Since we can't easily map back from element to pending text nodes without a map,
-        // let's re-scan the element for text nodes or keep a map.
-        
-        // Better: When scanning, if we find a text node, add it to a map: Map<Element, Set<TextNode>>.
-        // But nodes might move.
-        
-        // Let's iterate pendingNodes and check if their parent is the intersecting element.
-        // This is O(N) where N is total pending text nodes. Might be slow.
-        
-        // Optimization: 
-        // Just process the element's subtree for text nodes NOW.
-        // But we already scanned it.
-        
-        // Let's refine `scanNode`:
-        // If we find a text node, and its parent is not yet observed, observe the parent.
-        // When parent becomes visible, process ALL its text node children.
-        
         this.processElement(element as HTMLElement);
       }
     });
@@ -126,19 +83,22 @@ export class DOMObserver {
 
   private processElement(element: HTMLElement) {
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+    if (this.processedElements.has(element)) return;
+    this.processedElements.add(element); // Mark as processed (actually replaced nodes are gone/changed)
     let node: Node | null;
     while(node = walker.nextNode()) {
-       if (this.processedNodes.has(node)) continue;
-       
-       // Process matching
-       const text = node.textContent || '';
-       if (!text.trim()) continue;
 
-       const matches = this.matcher(text);
-       if (matches.length > 0) {
-         this.injectRuby(node as Text, matches);
-         this.processedNodes.add(node); // Mark as processed (actually replaced nodes are gone/changed)
-       }
+      // only process text nodes in the same level, or ruby nodes might be traversed
+      if(node.parentElement !== element) return
+
+      // Process matching
+      const text = node.textContent || '';
+      if (!text.trim()) continue;
+
+      const matches = this.matcher(text);
+      if (matches.length > 0) {
+        this.injectRuby(node as Text, matches);
+      }
     }
   }
 
@@ -147,18 +107,6 @@ export class DOMObserver {
     const originalText = node.textContent || '';
     const parent = node.parentNode;
     if (!parent) return;
-
-    // We can't easily restore if we split the node into many pieces.
-    // Instead of replacing the node with a frag, let's keep track of the *parent* and its original HTML?
-    // That's risky for dynamic apps.
-    // Better: Wrap the whole thing in a <span data-v-ruby-container>?
-    // Or just remember the original text content of this specific text node?
-    // But we replace the text node with multiple nodes (text, ruby, text...).
-    
-    // Restoration strategy:
-    // When injecting, replace `node` with a `<span>` containing the ruby structure?
-    // Then restoration is just `span.replaceWith(originalText)`.
-    // Let's try that.
     
     const container = document.createElement('span');
     container.dataset.vRubyOriginal = originalText;
@@ -184,11 +132,11 @@ export class DOMObserver {
     
     // Text after
     if (lastIndex < originalText.length) {
-       container.appendChild(document.createTextNode(originalText.slice(lastIndex)));
+      container.appendChild(document.createTextNode(originalText.slice(lastIndex)));
     }
     
     parent.replaceChild(container, node);
-    this.processedNodes.add(container); // Mark wrapper as processed
+    this.processedElements.add(container); // Mark wrapper as processed
   }
 
   /**
@@ -203,6 +151,6 @@ export class DOMObserver {
         wrapper.replaceWith(textNode);
       }
     });
-    this.processedNodes = new WeakSet(); // Reset processed
+    this.processedElements = new WeakSet(); // Reset processed
   }
 }

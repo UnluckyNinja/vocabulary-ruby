@@ -1,20 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted, shallowRef } from 'vue';
-import FloatingWidget from './components/FloatingWidget.vue';
-import SettingsDialog from './components/SettingsDialog.vue';
+import { ToastProvider, ToastViewport } from 'reka-ui';
+import { GM_registerMenuCommand } from '$'
+
 import { createMatcher, type Matcher } from './engine/matcher';
 import { DOMObserver } from './engine/observer';
-import { getActiveConfigs, loadRegistry } from './utils/config';
-import { GM_registerMenuCommand } from '$'
+import { getActiveConfigs } from './config/index';
+import { loadDictionary } from './engine/loader';
+
+import FloatingWidget from './components/FloatingWidget.vue';
+import SettingsDialog from './components/SettingsDialog.vue';
 
 const showSettings = ref(false);
 const matcher = shallowRef<Matcher | null>(null)
 const observer = shallowRef<DOMObserver | null>(null);
-const registry = loadRegistry()
 
 async function prepareMatcher() {
   // Find active configs for current site
-  const activeConfigs = getActiveConfigs(window.location.href, registry.value);
+  const activeConfigs = getActiveConfigs(window.location.href);
   
   if (activeConfigs.length === 0) {
     console.log('[VocabularyRuby] No active profiles match this site.');
@@ -23,7 +26,13 @@ async function prepareMatcher() {
 
   // Aggregate dictionaries
   // const combinedMap = await processDictionaries(activeConfigs);
-  const combinedMap = new Map();
+  const combinedMap = new Map()
+  activeConfigs.forEach(it=>{
+    const dictCache = loadDictionary(it.id)
+    dictCache.forEach((value, key)=>{
+      combinedMap.set(key, value)
+    })
+  });
   
   if (combinedMap.size === 0) {
     console.log('[VocabularyRuby] No entries found in active dictionaries.');
@@ -35,9 +44,12 @@ async function prepareMatcher() {
 }
 
 const handleReload = async () => {
+  changeState('running')
   await prepareMatcher()
   if (matcher.value) {
     toggleObserver(true);
+  }else {
+    changeState('ready')
   }
 };
 
@@ -83,7 +95,7 @@ function changeState(value: typeof state.value){
 
 const handleToggle = () => {
   if (state.value === 'ready') {
-    toggleObserver(true);
+    handleReload()
   } else if (state.value === 'reset') {
     toggleObserver(false);
   }
@@ -91,13 +103,14 @@ const handleToggle = () => {
 </script>
 
 <template>
-  <div>
+  <ToastProvider>
     <FloatingWidget :state="state" @toggle="handleToggle" @settings="showSettings = !showSettings" />
     <SettingsDialog 
       v-model:open="showSettings" 
       @reload-dictionary="handleReload"
     />
-  </div>
+    <ToastViewport class="[--viewport-padding:_25px] fixed bottom-0 right-0 flex flex-col p-[var(--viewport-padding)] gap-[10px] w-[390px] max-w-[100vw] m-0 list-none z-[2147483647] outline-none"  />
+  </ToastProvider>
 </template>
 
 <style>
