@@ -1,54 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted, shallowRef } from 'vue';
+import { ref, onMounted } from 'vue';
 import { ToastProvider, ToastViewport } from 'reka-ui';
 import { GM_registerMenuCommand } from '$'
 
-import { createMatcher, type Matcher } from './engine/matcher';
-import { DOMObserver } from './engine/observer';
-import { getActiveConfigs } from './config/index';
-import { loadDictionary } from './engine/loader';
 
 import FloatingWidget from './components/FloatingWidget.vue';
 import SettingsDialog from './components/SettingsDialog.vue';
+import { useMatcher } from './composables/useMatcher';
 
 const showSettings = ref(false);
-const matcher = shallowRef<Matcher | null>(null)
-const observer = shallowRef<DOMObserver | null>(null);
 
-async function prepareMatcher() {
-  // Find active configs for current site
-  const activeConfigs = getActiveConfigs(window.location.href);
-  
-  if (activeConfigs.length === 0) {
-    console.log('[VocabularyRuby] No active profiles match this site.');
-    return;
-  }
-
-  // Aggregate dictionaries
-  // const combinedMap = await processDictionaries(activeConfigs);
-  const combinedMap = new Map()
-  activeConfigs.forEach(it=>{
-    const dictCache = loadDictionary(it.id)
-    dictCache.forEach((value, key)=>{
-      combinedMap.set(key, value)
-    })
-  });
-  
-  if (combinedMap.size === 0) {
-    console.log('[VocabularyRuby] No entries found in active dictionaries.');
-    return;
-  }
-
-  // Create matcher
-  matcher.value = await createMatcher(combinedMap);
-}
+const { matcher, observer, prepareMatcher, toggleObserver: toggle } = useMatcher()
 
 const handleReload = async () => {
   changeState('running')
-  await prepareMatcher()
+  await prepareMatcher(window.location.href)
   if (matcher.value) {
     toggleObserver(true);
-  }else {
+  } else {
     changeState('ready')
   }
 };
@@ -56,19 +25,11 @@ const handleReload = async () => {
 const toggleObserver = (enable: boolean) => {
   changeState('running')
 
-  if (enable && matcher.value) {
-    if (observer.value) {
-      observer.value.stop();
-      observer.value = null;
-    }
-    observer.value = new DOMObserver(matcher.value);
-    observer.value.start();
+  const result = toggle(enable)
+
+  if (result) {
     changeState('reset')
   } else {
-    if (observer.value) {
-      observer.value.stop();
-      observer.value = null;
-    }
     changeState('ready')
   }
 };

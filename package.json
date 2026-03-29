@@ -5,10 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter userscript dev",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "skills-npm"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "skills-npm": "^1.1.0"
+  }
 }

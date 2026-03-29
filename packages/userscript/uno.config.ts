@@ -5,9 +5,11 @@ export default defineConfig({
     presetWind4(),
     presetIcons({
       scale: 1.2,
-      cdn: 'https://esm.sh/', // Use CDN for icons in userscript environment if needed, or bundle them
     }),
   ],
+  outputToCssLayers: {
+    allLayers: true,
+  },
   transformers: [
     transformerDirectives(),
   ]
