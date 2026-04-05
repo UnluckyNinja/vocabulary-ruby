@@ -21,11 +21,11 @@ export default defineConfig({
           'https://*/*',
         ],
         name: 'Vocabulary Ruby',
-        author: 'User',
+        author: 'UnluckyNinja',
         description: 'Auto-annotate dictionary words with ruby tags',
         connect: [
-          'https://docs.google.com/spreadsheets/d/e/*',
-          'https://*.googleusercontent.com/pub/*',
+          'docs.google.com',
+          'googleusercontent.com',
         ],
         grant: [
           'GM_setValue',
