@@ -35,9 +35,11 @@ const mo = new MutationObserver((list, obs)=>{
   sheet.replaceSync(text)
 })
 
-// on Firefox subtree + characterData will work, while only childList will not work.
+// observe unocss style element change to hoist @property lines
+// in Chrome: childList is needed
+// in Firefox: subtree + characterData will work, while childList will not work.
 mo.observe(unoCss, {
-  // childList: true,
+  childList: true,
   subtree: true,
   characterData: true,
 })
