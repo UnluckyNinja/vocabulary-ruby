@@ -7,6 +7,7 @@ import { GM_registerMenuCommand } from '$'
 import FloatingWidget from './components/FloatingWidget.vue';
 import SettingsDialog from './components/SettingsDialog.vue';
 import { useMatcher } from './composables/useMatcher';
+import ToastContainer from './components/toast/ToastContainer.vue';
 
 const showSettings = ref(false);
 
@@ -70,6 +71,9 @@ const handleToggle = () => {
       v-model:open="showSettings" 
       @reload-dictionary="handleReload"
     />
+    <div>
+      <ToastContainer />
+    </div>
     <ToastViewport class="[--viewport-padding:_25px] fixed bottom-0 right-0 flex flex-col p-[var(--viewport-padding)] gap-[10px] w-[390px] max-w-[100vw] m-0 list-none z-[2147483647] outline-none"  />
   </ToastProvider>
 </template>

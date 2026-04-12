@@ -25,14 +25,21 @@ function addStyle(content: string){
 GM_addStyle(bodyStyle)
 
 // @property unfortunately will be ignored in shadow DOM,
-// so we have to move them to parent.
+// so we have to move them to the root document.
 // there are some other directives in it, I guess it won't hurt though.
 const sheet = new CSSStyleSheet()
-const mo = new MutationObserver(()=>{
-  sheet.replaceSync(unoCss.textContent.split('\n').filter(it=>it.startsWith('@') && it.endsWith('}')).join('\n'))
+const mo = new MutationObserver((list, obs)=>{
+  // console.log(list)
+  const text = unoCss.textContent.split('\n').filter(it=>it.startsWith('@') && it.endsWith('}')).join('\n')
+  // console.log(text)
+  sheet.replaceSync(text)
 })
+
+// on Firefox subtree + characterData will work, while only childList will not work.
 mo.observe(unoCss, {
-  childList: true,
+  // childList: true,
+  subtree: true,
+  characterData: true,
 })
 
 shadowRoot.appendChild(unoCss)

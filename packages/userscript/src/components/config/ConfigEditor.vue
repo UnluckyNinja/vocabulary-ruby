@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { loadConfig, watchConfigChange } from '../../config';
-import { EditableArea, EditableInput, EditablePreview, EditableRoot, SwitchRoot, SwitchThumb, ToastAction, ToastClose, ToastDescription, ToastRoot, ToastTitle } from 'reka-ui';
+import { EditableArea, EditableInput, EditablePreview, EditableRoot, SwitchRoot, SwitchThumb } from 'reka-ui';
 import DictionaryList from './DictionaryList.vue';
 import { addDictionaryToConfig } from '../../config/dict';
 import { processSources, saveDictionary } from '../../engine/loader';
+import { useToastStore } from '../../composables/useToastStore';
 
 
 // const config = defineModel({
@@ -36,38 +37,53 @@ const dictChanged = ref(false)
 const failed = ref<string[]>([])
 const failedPretty = ref<string[]>([])
 
-const toastOpen = ref(false)
-const timeoutRef = ref<number | undefined>(undefined)
-const statusTitle = ref('')
-const statusMessage = ref('')
-
 async function saveDictionaryCache(){
   if (!dictChanged.value) return
   if (!config.value) return
-  clearTimeout(timeoutRef.value)
-  statusTitle.value = 'Processing dictionaries...'
-  statusMessage.value = 'Please wait until it\'s done.'
-  toastOpen.value = true
   const result = await processSources([...config.value.remoteDictionaries, ...config.value.localDictionaries])
   saveDictionary(props.configID, result.dicts)
   failed.value = result.failed.map(it=>it.id)
   failedPretty.value = result.failed.slice(0,5).map(it=>`${it.name}, ID: ${it.id.slice(0,6)}...`)
   dictChanged.value = false
-  statusTitle.value = 'Done! ' + failed.value.length + ' dictionaries failed to load.'
-  statusMessage.value = `${failed.value.length > 0 ? failedPretty.value.join('\n') : 'All succeeded.'}\n`
-    + `${failed.value.length > failedPretty.value.length ? `and ${failed.value.length - failedPretty.value.length} more...\n` :''}`
-    + `This toast will auto-close after 5s.`
-  timeoutRef.value = setTimeout(()=>{
-    toastOpen.value = false
-  }, 5000)
+  if (result.failed.length > 0) {
+    console.debug(`Failed to processed:`)
+    console.debug(result.failed)
+  }
+  return {
+    title: 'Done! ' + (failed.value.length > 0 ? failed.value.length + ' dictionaries failed to load.' : ''),
+    description: `${failed.value.length > 0 ? failedPretty.value.join('\n') : 'All succeeded.'}\n`
+      + `${failed.value.length > failedPretty.value.length ? `and ${failed.value.length - failedPretty.value.length} more...\n` :''}`
+  }
 }
 
 
 onBeforeUnmount(()=>{
   console.debug('Reload dictionaries')
-  if (dictChanged.value) {
-    saveDictionaryCache()
+  if (!dictChanged.value || !config.value) {
+    return
   }
+  const {createToast} = useToastStore()
+  createToast(({withdraw})=>{
+    saveDictionaryCache().then((result)=>{
+      withdraw()
+      createToast(()=>{
+        return {
+          title: result?.title,
+          description: result?.description,
+          type: 'success',
+          duration: 5000,
+          dismissible: true,
+          icon: 'i-carbon:checkmark-outline'
+        }
+      })
+    })
+    return {
+      title: 'Saving Configs',
+      description: 'Please wait until done.',
+      type: 'warning',
+      icon: 'i-line-md:loading-twotone-loop',
+    }
+  })
 })
 </script>
 
@@ -139,16 +155,6 @@ onBeforeUnmount(()=>{
         Add new dictionary
       </button>
     </section>
-    <ToastRoot v-model:open="toastOpen">
-      <ToastTitle>
-        {{ statusTitle }}
-      </ToastTitle>
-      <ToastDescription>
-        {{ statusMessage }}
-        </ToastDescription>
-      <!-- <ToastAction  /> -->
-      <!-- <ToastClose /> -->
-    </ToastRoot>
   </div>
 </template>
 

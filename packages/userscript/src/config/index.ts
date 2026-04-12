@@ -1,7 +1,6 @@
 import { CompressedStorage } from '../utils/storage';
-import { UserConfig, BackupData, ConfigInfo, generateId, REGISTRY_KEY, storageConfigKey } from './configType';
+import { UserConfig, ConfigInfo, generateId, REGISTRY_KEY, storageConfigKey } from './configType';
 import { GM_addValueChangeListener, GM_removeValueChangeListener, GmValueListenerId } from '$';
-import { fetchContent } from '../utils/network';
 import { type Ref, watch, WritableComputedRef } from 'vue';
 import { createEventHook, tryOnScopeDispose } from '@vueuse/core';
 
@@ -70,20 +69,22 @@ export function watchConfigChange(config: Ref<UserConfig | null> | WritableCompu
   let lastConfigID: string = config.value?.id || ''
   function watchConfig(){
     return watch(config, (newVal)=>{
+      // adding/removing config
       if (!newVal || !lastConfigID) {
-        if (lastConfigID) {
+        if (lastConfigID) { // removing
           watcherHandle.stop()
           if (gmid) {
             GM_removeValueChangeListener(gmid)
           }
         }
-        if (newVal) {
+        if (newVal) { // adding
           lastConfigID = newVal.id
           watcherHandle = watchConfig()
           gmid = watchGmValueChange(newVal.id)
         }
         return
       }
+      // changing options
       if (gmid) {
         GM_removeValueChangeListener(gmid)
       }
