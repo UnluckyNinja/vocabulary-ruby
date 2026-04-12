@@ -24,12 +24,13 @@ export async function createMatcher(dictionary: Map<string, string>): Promise<Ma
       return dictionary.get(word)
     }
 
-    return refineMatches(findWords(text)).map(it=>{
+    const words = refineMatches(findWords(text)).map(it=>{
       return {
         start:it.start,
         end: it.end,
         translation: getTranslation(it.start, it.end) ?? ''
       }
     })
+    return words
   }
 }

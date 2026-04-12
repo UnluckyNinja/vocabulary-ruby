@@ -22,7 +22,7 @@ export class DOMObserver {
     this.observer.observe(document.body, {
       childList: true,
       subtree: true,
-      characterData: true, // Also watch for text content changes? Usually overkill for new nodes, but maybe needed for dynamic text updates.
+      characterData: true,
     });
     
     // Initial scan
@@ -40,7 +40,11 @@ export class DOMObserver {
       if (mutation.type === 'childList') {
         mutation.addedNodes.forEach(node => this.scanNode(node));
       } else if (mutation.type === 'characterData') {
-        this.scanNode(mutation.target);
+        const parentEle = mutation.target.parentElement
+        if (parentEle) {
+          this.processedElements.delete(parentEle)
+          this.scanNode(parentEle);
+        }
       }
     }
   }
@@ -82,14 +86,13 @@ export class DOMObserver {
   }
 
   private processElement(element: HTMLElement) {
-    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
-    if (this.processedElements.has(element)) return;
-    this.processedElements.add(element); // Mark as processed (actually replaced nodes are gone/changed)
-    let node: Node | null;
-    while(node = walker.nextNode()) {
 
-      // only process text nodes in the same level, or ruby nodes might be traversed
-      if(node.parentElement !== element) return
+    if (this.processedElements.has(element)) return;
+    this.processedElements.add(element); // Mark as processed
+
+    const nodes = element.childNodes
+    for (const node of nodes) {
+      if (node.nodeType !== Node.TEXT_NODE) continue
 
       // Process matching
       const text = node.textContent || '';
