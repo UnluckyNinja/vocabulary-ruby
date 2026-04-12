@@ -8,7 +8,7 @@ export interface DictionarySource {
 
 export type ConfigMode = 'local' | 'remote'
 
-export interface UserConfig {
+export interface DictConfig {
   id: string
   name: string
   mode: ConfigMode
@@ -37,7 +37,7 @@ export interface ConfigInfo {
  */
 export interface BackupData {
   registry: ConfigInfo[]
-  configs: Record<string, UserConfig>
+  configs: Record<string, DictConfig>
 }
 
 export const REGISTRY_KEY = 'vr_config_registry'

@@ -1,22 +1,22 @@
 import { addConfigToRegistry, loadRegistry, loadConfig, saveRegistry, saveConfig } from './index';
 import { fetchContent } from '../utils/network';
 import { CompressedStorage } from '../utils/storage';
-import { generateId, BackupData, storageConfigKey, UserConfig } from './configType';
+import { generateId, BackupData, storageConfigKey, DictConfig } from './configType';
 
 /**
  * Exports a single configuration to a JSON string.
  */
-export function exportConfig(config: UserConfig): string {
+export function exportConfig(config: DictConfig): string {
   return JSON.stringify(config, null, 2);
 }
 
 /**
  * Imports a single configuration.
  */
-export function importConfig(json: string): UserConfig | null {
+export function importConfig(json: string): DictConfig | null {
   // @TODO add zod validation
   try {
-    const config = JSON.parse(json) as UserConfig;
+    const config = JSON.parse(json) as DictConfig;
 
     config.id = generateId();
     addConfigToRegistry(config)
@@ -30,11 +30,11 @@ export function importConfig(json: string): UserConfig | null {
 /**
  * Imports a single configuration from url.
  */
-export async function importRemoteConfig(url: string): Promise<UserConfig | null> {
+export async function importRemoteConfig(url: string): Promise<DictConfig | null> {
   // @TODO add zod validation
   try {
     const json = await fetchContent(url)
-    const config = JSON.parse(json) as UserConfig;
+    const config = JSON.parse(json) as DictConfig;
 
     config.id = generateId();
     config.mode = 'remote'
@@ -57,7 +57,7 @@ export async function updateConfig(id: string): Promise<void> {
       return
     }
     const json = await fetchContent(config.remoteUrl)
-    const remoteConfig = JSON.parse(json) as UserConfig;
+    const remoteConfig = JSON.parse(json) as DictConfig;
     config.remoteSiteRegexes = remoteConfig.remoteSiteRegexes
     config.remoteDictionaries = remoteConfig.remoteDictionaries
 
@@ -72,7 +72,7 @@ export async function updateConfig(id: string): Promise<void> {
  */
 export function exportAll(): string {
   const registry = loadRegistry();
-  const configs: Record<string, UserConfig> = {};
+  const configs: Record<string, DictConfig> = {};
 
   registry.forEach(info => {
     const fullConfig = loadConfig(info.id);

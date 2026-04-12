@@ -1,5 +1,5 @@
 import { CompressedStorage } from '../utils/storage';
-import { UserConfig, ConfigInfo, generateId, REGISTRY_KEY, storageConfigKey } from './configType';
+import { DictConfig, ConfigInfo, generateId, REGISTRY_KEY, storageConfigKey } from './configType';
 import { GM_addValueChangeListener, GM_removeValueChangeListener, GmValueListenerId } from '$';
 import { type Ref, watch, WritableComputedRef } from 'vue';
 import { createEventHook, tryOnScopeDispose } from '@vueuse/core';
@@ -53,10 +53,10 @@ export function saveRegistry(registry: ConfigInfo[] | undefined): void {
  * For editing
  */
 export function loadConfig(configID: string) {
-  return CompressedStorage.get<UserConfig>(storageConfigKey(configID)) || null
+  return CompressedStorage.get<DictConfig>(storageConfigKey(configID)) || null
 }
 
-export function watchConfigChange(config: Ref<UserConfig | null> | WritableComputedRef<UserConfig | null>) {
+export function watchConfigChange(config: Ref<DictConfig | null> | WritableComputedRef<DictConfig | null>) {
 
   const invalidate = createEventHook()
 
@@ -113,7 +113,7 @@ export function watchConfigChange(config: Ref<UserConfig | null> | WritableCompu
         return
       }
       watcherHandle.pause()
-      config.value = CompressedStorage.get<UserConfig>(storageConfigKey(configID))!
+      config.value = CompressedStorage.get<DictConfig>(storageConfigKey(configID))!
       watcherHandle.resume()
     })
   }
@@ -138,7 +138,7 @@ export function watchConfigChange(config: Ref<UserConfig | null> | WritableCompu
 /**
  * Automatically called by vue reactivity
  */
-export function saveConfig(id: string, config: UserConfig | undefined): void {
+export function saveConfig(id: string, config: DictConfig | undefined): void {
   if (config) {
     CompressedStorage.set(storageConfigKey(id), config);
   } else {
@@ -149,7 +149,7 @@ export function saveConfig(id: string, config: UserConfig | undefined): void {
 /**
  * Adds a new configuration, will change config ID if found conflict
  */
-export function addConfigToRegistry(config?: UserConfig): UserConfig {
+export function addConfigToRegistry(config?: DictConfig): DictConfig {
   if (!config) {
     config = createEmptyConfig()
   }
@@ -182,10 +182,10 @@ export function deleteConfigFromRegistry(id: string, registry: ConfigInfo[]): vo
 /**
  * Gets configs that match the current URL and are enabled.
  */
-export function getActiveConfigs(url: string): UserConfig[] {
+export function getActiveConfigs(url: string): DictConfig[] {
   const registry = loadRegistry()
   const enabledConfigs = registry.filter(info => info.enabled);
-  const activeConfigs: UserConfig[] = [];
+  const activeConfigs: DictConfig[] = [];
 
   for (const info of enabledConfigs) {
     const config = loadConfig(info.id)
@@ -198,7 +198,7 @@ export function getActiveConfigs(url: string): UserConfig[] {
   return activeConfigs;
 }
 
-function matchUserConfig(url: string, config: UserConfig): boolean {
+function matchUserConfig(url: string, config: DictConfig): boolean {
 
   const remoteStrings = config.remoteSiteRegexes.split('\r?\n').filter(it=>{
     return it && !it.startsWith('//')
@@ -233,7 +233,7 @@ function matchUserConfig(url: string, config: UserConfig): boolean {
 /**
  * Creates an empty local configuration.
  */
-export function createEmptyConfig(name: string = 'New Configuration'): UserConfig {
+export function createEmptyConfig(name: string = 'New Configuration'): DictConfig {
   return {
     id: generateId(),
     name,

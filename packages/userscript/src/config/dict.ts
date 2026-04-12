@@ -1,5 +1,5 @@
 import { loadConfig, saveConfig } from './index';
-import { DictionarySource, generateId, UserConfig } from './configType';
+import { DictionarySource, generateId, DictConfig } from './configType';
 
 export function createDictionarySource(): DictionarySource {
   return {
@@ -11,7 +11,7 @@ export function createDictionarySource(): DictionarySource {
   }
 }
 
-export function addDictionaryToConfig(configID: string, dictionary?: DictionarySource): UserConfig {
+export function addDictionaryToConfig(configID: string, dictionary?: DictionarySource): DictConfig {
   if (!dictionary) {
     dictionary = createDictionarySource()
   }
