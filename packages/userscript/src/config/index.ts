@@ -3,6 +3,7 @@ import { DictConfig, ConfigInfo, generateId, REGISTRY_KEY, storageConfigKey } fr
 import { GM_addValueChangeListener, GM_removeValueChangeListener, GmValueListenerId } from '$';
 import { type Ref, watch, WritableComputedRef } from 'vue';
 import { createEventHook, tryOnScopeDispose } from '@vueuse/core';
+import { matchRegexURL } from '../utils/regex';
 
 /**
  * Retrieves the lightweight registry of all configurations.
@@ -208,26 +209,7 @@ function matchUserConfig(url: string, config: DictConfig): boolean {
   })
 
   const regexes = [...remoteStrings, ...localStrings]
-  return regexes.reduce((result, regexStr) => {
-    if (!regexStr) return false;
-    let include = true
-    if (regexStr.startsWith('!')) {
-      include = false
-      regexStr = regexStr.slice(1)
-    }
-    if (result === include) {
-      return result
-    }
-    try {
-      // support exclude pattern starting with "!"
-      const regex = new RegExp('^' + regexStr);
-      const test = regex.test(url)
-      return include ? test : !test;
-    } catch (e) {
-      console.error(`Invalid regex: ${regexStr}`, e);
-      return result;
-    }
-  }, false)
+  return matchRegexURL(url, regexes)
 }
 
 /**
