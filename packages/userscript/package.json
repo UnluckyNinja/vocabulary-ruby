@@ -1,12 +1,12 @@
 {
   "name": "userscript",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "dev": "vp dev",
+    "build": "vue-tsc -b && vp build",
+    "preview": "vp preview"
   },
   "dependencies": {
     "@vueuse/core": "^14.2.1",
@@ -22,10 +22,11 @@
     "@types/d3-dsv": "^3.0.7",
     "@vitejs/plugin-vue": "^6.0.5",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
+    "vite": "catalog:",
     "vite-plugin-inspect": "^11.3.3",
     "vite-plugin-monkey": "^7.1.9",
-    "vitest": "^4.1.2",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:",
     "vue-tsc": "^3.2.6"
   }
 }

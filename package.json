@@ -1,18 +1,19 @@
 {
   "name": "vocabulary-ruby",
   "version": "1.0.0",
-  "description": "",
   "private": true,
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "author": "",
+  "type": "module",
   "scripts": {
     "dev": "pnpm --filter userscript dev",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "skills-npm"
+    "prepare": "vp config"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "type": "module",
   "devDependencies": {
-    "skills-npm": "^1.1.0"
-  }
+    "vite-plus": "catalog:"
+  },
+  "packageManager": "pnpm@11.5.2"
 }
