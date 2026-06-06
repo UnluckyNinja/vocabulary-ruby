@@ -6,9 +6,18 @@ A Tampermonkey userscript that imports CSV dictionaries and automatically annota
 
 This project is a monorepo managed by `pnpm`.
 
-- `packages/userscript`: The main userscript project (Vue + Vite + UnoCSS).
+- `packages/userscript`: The main userscript project (Using `vite-plugin-monkey`).
 
-## Getting Started
+## Usage
+
+### Preset
+A preset is a configuration composed with some **website filters** to determine what websites and which part of it to process, and **dictionaries** to translate text.
+
+Preset can be specified with one or more remote sources to append above settings.
+
+### Website Filter
+
+## Develop locally
 
 1. **Install Dependencies:**
    ```bash
@@ -29,18 +38,7 @@ This project is a monorepo managed by `pnpm`.
    ```
    The built userscript will be in `packages/userscript/dist/userscript.user.js`.
 
-## Configuration
-
-1. Click the floating "Translate" icon in the top-right corner.
-2. Toggle "Enable Plugin".
-3. Add URLs to your CSV dictionaries (e.g., `https://example.com/dict.csv`).
-4. Click "Reload Dictionary".
-
-## Customization
-
-- **Matching Logic:** The current matching logic in `src/engine/matcher.ts` is a placeholder. You **must** implement your own efficient text matching algorithm (e.g., Trie-based) to handle large dictionaries effectively.
-
-## Tech Stack
+## Dependencies
 
 - **Vue 3**
 - **Vite** + **vite-plugin-monkey**

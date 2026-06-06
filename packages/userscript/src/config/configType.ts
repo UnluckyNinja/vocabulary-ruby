@@ -33,14 +33,40 @@ export interface ConfigInfo {
 }
 
 /**
+ * Define root selectors for websites
+ */
+export interface SelectorConfig {
+  id: string
+  name: string
+  enabled: boolean
+  siteRegex: string
+  selector: string
+}
+
+/**
+ * Define styling for websites
+ */
+export interface StyleConfig {
+  id: string
+  name: string
+  enabled: boolean
+  siteRegex: string
+  style: string
+}
+
+/**
  * Structure for full backup and restore.
  */
 export interface BackupData {
   registry: ConfigInfo[]
   configs: Record<string, DictConfig>
+  selectors: Record<string, SelectorConfig>
+  styles: Record<string, StyleConfig>
 }
 
 export const REGISTRY_KEY = 'vr_config_registry'
+export const SELECTORS_KEY = 'vr_selector_config'
+export const STYLES_KEY = 'vr_style_config'
 export const CONFIG_PREFIX = 'config:'
 
 export function generateId() {
