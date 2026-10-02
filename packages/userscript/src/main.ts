@@ -6,16 +6,17 @@ import bodyStyle from './body.css?inline'
 
 // styles for widget
 import styleCss from './style.css?inline'
-import unoCss from 'unocss-inline/style'
+import { createUnoStyle, unoCss } from 'unocss-inline/css'
 import { GM_addStyle } from '$';
 
 // wrap widget in shadow DOM to avoid polluting page
 import { shadowRoot, portalTarget } from './shadowRoot'
 
-createApp(App).mount(portalTarget)
+const app = createApp(App)
+app.mount(portalTarget)
 
 // add styles to shadow DOM
-function addStyle(content: string){
+function addStyle(content: string) {
   const cssEle = document.createElement('style')
   cssEle.textContent = content
   shadowRoot.appendChild(cssEle)
@@ -28,23 +29,14 @@ GM_addStyle(bodyStyle)
 // so we have to move them to the root document.
 // there are some other directives in it, I guess it won't hurt though.
 const sheet = new CSSStyleSheet()
-const mo = new MutationObserver((list, obs)=>{
+unoCss.subscribe(newVal => {
   // console.log(list)
-  const text = unoCss.textContent.split('\n').filter(it=>it.startsWith('@') && it.endsWith('}')).join('\n')
+  const text = newVal.split('\n').filter(it => it.startsWith('@') && it.endsWith('}')).join('\n')
   // console.log(text)
   sheet.replaceSync(text)
 })
 
-// observe unocss style element change to hoist @property lines
-// in Chrome: childList is needed
-// in Firefox: subtree + characterData will work, while childList will not work.
-mo.observe(unoCss, {
-  childList: true,
-  subtree: true,
-  characterData: true,
-})
-
-shadowRoot.appendChild(unoCss)
+shadowRoot.appendChild(createUnoStyle())
 document.adoptedStyleSheets.push(sheet)
 const styleEle = addStyle(styleCss)
 
@@ -52,7 +44,7 @@ const styleEle = addStyle(styleCss)
 if (import.meta.hot) {
   import.meta.hot.accept([
     './style.css?inline'
-  ],([styleCss])=>{
+  ], ([styleCss]) => {
     if (styleCss) {
       styleEle.textContent = styleCss.default
     }
