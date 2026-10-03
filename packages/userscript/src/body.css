@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
 :root {
   /* some website hide overflow in html tag, while reka-ui's modal acts on body tag */
   overflow-inline: visible;

@@ -5,21 +5,27 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "vue-tsc -b && vp build",
+    "build": "vp build",
     "preview": "vp preview"
   },
   "dependencies": {
+    "@nuxt/ui": "^4.11.3",
     "@vueuse/core": "^14.4.0",
     "d3-dsv": "^3.0.1",
     "dawg-search": "^2.0.1",
     "fflate": "^0.8.3",
     "reka-ui": "^2.9.3",
+    "tailwindcss": "^4.3.3",
     "unocss": "^66.10.5",
     "unocss-inline": "^0.3.0",
-    "vue": "^3.5.43"
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1"
   },
   "devDependencies": {
     "@types/d3-dsv": "^3.0.7",
+    "@types/node": "^24.19.0",
+    "@vitejs/devtools": "^0.7.6",
+    "@vitejs/devtools-vite": "^0.7.6",
     "@vitejs/plugin-vue": "^6.0.9",
     "typescript": "^6.0.3",
     "vite": "catalog:",

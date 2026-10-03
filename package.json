@@ -8,7 +8,7 @@
   "author": "",
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter userscript dev",
+    "dev": "vp run userscript#dev",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "vp config"
   },

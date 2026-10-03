@@ -18,7 +18,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    "paths": {
+      "#build/ui": ["./node_modules/.nuxt-ui/ui"]
+    },
+    "types": ["vite-plus/client"]
   },
   "include": ["vite.config.ts"]
 }

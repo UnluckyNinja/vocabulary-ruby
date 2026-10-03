@@ -4,7 +4,11 @@ export default defineConfig({
   staged: {
     '*.{js,ts,tsx,vue,svelte}': 'vp check --fix',
   },
-  fmt: {},
+  fmt: {
+    singleQuote: true,
+    semi: false,
+    arrowParens: 'avoid',
+  },
   lint: {
     jsPlugins: [
       {
