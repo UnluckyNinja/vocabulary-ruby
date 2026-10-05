@@ -1,62 +1,118 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-
-const emit = defineEmits<{
-  'settings': []
-  'toggle': []
-}>();
+import {
+  useWindowSize,
+  useElementSize,
+  Position,
+  clamp,
+  useDraggable,
+  onClickOutside,
+} from '@vueuse/core'
+import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
 
 const props = defineProps<{
-  state: 'ready' | 'running' | 'reset'
+  icon?: string
 }>()
 
-const icon = computed(()=>{
-  switch(props.state) {
-    case 'ready': {
-      return 'i-carbon:play'
-    }
-    case 'running': {
-      return 'i-carbon:hourglass'
-    }
-    case 'reset': {
-      return 'i-carbon:reset'
-    }
-  }
+const emit = defineEmits<{
+  dragStart: []
+}>()
+
+const open = ref(false)
+
+const icon = computed(() => {
+  return open.value ? 'i-lucide:x' : 'i-lucide:settings-2'
 })
 
-const isOpen = ref(false)
+const wrapper = useTemplateRef('wrapper')
+
+const windowSize = useWindowSize({
+  includeScrollbar: false,
+})
+
+const wrapperSize = useElementSize(wrapper, {
+  width: 48,
+  height: 48,
+})
+
+function clampPos(pos: Position) {
+  pos.x = clamp(
+    pos.x,
+    wrapperSize.width.value / 2,
+    windowSize.width.value - wrapperSize.width.value / 2,
+  )
+  pos.y = clamp(
+    pos.y,
+    wrapperSize.height.value / 2,
+    windowSize.height.value - wrapperSize.height.value / 2,
+  )
+}
+
+const cancelClick = ref(false)
+const emittedDrag = ref(false)
+
+const { x, y, style, isDragging } = useDraggable(wrapper, {
+  initialValue: { x: windowSize.width.value, y: 40 },
+  onMove() {
+    cancelClick.value = true
+    if (!emittedDrag.value) {
+      open.value = false
+      emittedDrag.value = true
+    }
+  },
+  onEnd(position) {
+    clampPos(position)
+    setTimeout(() => {
+      cancelClick.value = false
+    }, 10)
+    emittedDrag.value = false
+  },
+})
+
+onMounted(() => {
+  // 放一帧等元素重排完毕获取真实大小
+  nextTick(() => {
+    const pos = reactive({ x, y })
+    clampPos(pos)
+  })
+})
+
+function cancelClickWhenDragging(event: MouseEvent) {
+  if (cancelClick.value) {
+    event.stopPropagation()
+    return
+  }
+}
+
+import { wrapper as hostElement, portalTarget } from '../shadowRoot'
+const popover = useTemplateRef('popover')
+onClickOutside(popover, event => {
+  // Nuxt UI Popover doesn't correctly handle shadow dom clicking event,
+  // it will close and immediately open again.
+  // We have to do it manually
+  if (event.target instanceof Element) {
+    if (hostElement.contains(event.target)) {
+      return
+    }
+  }
+  open.value = false
+})
 </script>
 
 <template>
-  <div
-    class="fixed top-4 right-0 z-[2147483647] flex items-center justify-center transition-all duration-300 ease-in-out"
-    :class="{ 'translate-x-0': isOpen, 'translate-x-full': !isOpen}"
-    >
-    <!-- Background Blur/Glass -->
-    <div class="bg-blue-400/60 text-slate-700 backdrop-blur-md relative right-4 rounded-full h-12
-      shadow-lg transition-all duration-300 overflow-clip"
-      :class="{'translate-x-0 hover:-translate-x-2': !isOpen }">
-
-      <!-- Icon -->
-      <div class="relative flex items-center justify-around w-full h-full"
-        :class="[isOpen ? '' : '']">
-        <button class="text-2xl px-2 h-full hover:bg-white/10">
-          <div :class="{ 'i-carbon:chevron-left relative right-2': !isOpen, 'i-carbon:chevron-right': isOpen }"
-            @click="isOpen = !isOpen">
-          </div>
-        </button>
-        <div class="w-0 h-60% border border-white/30"></div>
-        <button class="text-2xl px-2 h-full hover:bg-white/10"
-          @click="emit('toggle')"
-          :disabled="state === 'running'">
-          <div :class="[icon, state === 'running' ? 'animate-pulse cursor-wait' : '']"></div>
-        </button>
-        <div class="w-0 h-60% border border-white/30"></div>
-        <button class="text-2xl px-2 h-full hover:bg-white/10"
-          @click="emit('settings')">
-          <div class="i-carbon:settings"></div>
-        </button>
-      </div>
+  <UPopover :portal="portalTarget" :open="open" :content="{ side: 'left', align: 'end' }" arrow>
+    <div ref="wrapper" class="fixed" :style="style" @click.capture="cancelClickWhenDragging">
+      <UButton
+        class="text-3xl p-2"
+        size="xl"
+        :class="[isDragging ? 'cursor-move' : 'cursor-pointer']"
+        variant="subtle"
+        @click="() => (open = !open)"
+      >
+        <div :class="icon"></div>
+      </UButton>
     </div>
-  </div>
+    <template #content>
+      <QuickPanel ref="popover"></QuickPanel>
+    </template>
+  </UPopover>
 </template>

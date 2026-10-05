@@ -21,7 +21,13 @@ export default defineConfig(({ command }) => ({
   plugins: [
     Inspect(),
     vue(),
-    NuxtUI(),
+    NuxtUI({
+      ui: {
+        colors: {
+          primary: 'red',
+        },
+      },
+    }),
     UnoCSS(),
     unocssInline(),
     monkey({
