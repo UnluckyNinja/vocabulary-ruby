@@ -46,14 +46,11 @@ function addStyle(content: string) {
   return cssEle
 }
 
-GM_addStyle(bodyStyle)
-
 // @property unfortunately will be ignored in shadow DOM,
 // so we have to move them to the root document.
 // there are some other directives in it, I guess it won't hurt though.
 const sheet = new CSSStyleSheet()
 unoCss.subscribe(newVal => {
-  // console.log(list)
   const text = newVal
     .split('\n')
     .filter(it => it.startsWith('@') && it.endsWith('}'))
@@ -61,10 +58,13 @@ unoCss.subscribe(newVal => {
   // console.log(text)
   sheet.replaceSync(text)
 })
-
-shadowRoot.appendChild(createUnoStyle())
+const unostyle = createUnoStyle()
+shadowRoot.appendChild(unostyle)
 document.adoptedStyleSheets.push(sheet)
+
+const propertyrules = styleCss.matchAll(/@property[\w\W]*?\}/g)
 const styleEle = addStyle(styleCss)
+GM_addStyle([bodyStyle, ...propertyrules].join('\n'))
 
 // HMR for styles
 if (import.meta.hot) {

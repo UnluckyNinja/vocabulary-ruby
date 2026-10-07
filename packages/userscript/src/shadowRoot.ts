@@ -9,6 +9,7 @@ const shadowRoot = document.documentElement.appendChild(wrapper).attachShadow({ 
 const element = document.createElement('div')
 element.id = 'vocabulary-ruby'
 element.classList.add('isolate')
+element.classList.add('font-sans')
 shadowRoot.appendChild(element)
 
 const fontSize = window.getComputedStyle(document.documentElement).fontSize

@@ -3,8 +3,9 @@ import { ref, onMounted } from 'vue'
 import { GM_registerMenuCommand } from '$'
 
 import { useMatcher } from './composables/useMatcher'
-
-const showSettings = ref(false)
+import SettingsDialog from './components/SettingsDialog.vue'
+import { useSettings } from './composables/store.ts'
+import { portalTarget } from './shadowRoot.ts'
 
 const { matcher, observer, prepareMatcher, toggleObserver: toggle } = useMatcher()
 
@@ -57,11 +58,34 @@ const handleToggle = () => {
     toggleObserver(false)
   }
 }
+
+const { showSettings } = useSettings()
 </script>
 
 <template>
   <UApp>
-    <FloatingWidget />
+    <div>
+      <FloatingWidget />
+      <UModal
+        v-model:open="showSettings"
+        :portal="portalTarget"
+        :dismissible="false"
+        :modal="false"
+        :overlay="false"
+        title="设置"
+      >
+        <template #body>
+          <div class="min-h-45dvh">
+            <SettingsDialog />
+          </div>
+        </template>
+        <template #footer>
+          <UButton color="neutral" block size="xl" variant="ghost" @click="showSettings = false"
+            >关闭</UButton
+          >
+        </template>
+      </UModal>
+    </div>
   </UApp>
 </template>
 

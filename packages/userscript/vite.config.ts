@@ -42,7 +42,13 @@ export default defineConfig(({ command }) => ({
         name: 'Vocabulary Ruby',
         author: 'UnluckyNinja',
         description: 'Auto-annotate dictionary words with ruby tags',
-        connect: ['docs.google.com', 'googleusercontent.com'],
+        connect: [
+          'docs.google.com',
+          'googleusercontent.com',
+          'github.com',
+          'raw.githubusercontent.com',
+          '*',
+        ],
       },
       build: {
         externalGlobals: {

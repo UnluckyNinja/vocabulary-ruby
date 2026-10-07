@@ -8,6 +8,8 @@ import {
   onClickOutside,
 } from '@vueuse/core'
 import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
+import { wrapper as hostElement, portalTarget } from '../shadowRoot'
+import { distance } from '../utils'
 
 const props = defineProps<{
   icon?: string
@@ -50,8 +52,13 @@ function clampPos(pos: Position) {
 const cancelClick = ref(false)
 const emittedDrag = ref(false)
 
+const startPosition = ref<Position>({ x: windowSize.width.value, y: 40 })
+
 const { x, y, style, isDragging } = useDraggable(wrapper, {
   initialValue: { x: windowSize.width.value, y: 40 },
+  onStart(position) {
+    startPosition.value = position
+  },
   onMove() {
     cancelClick.value = true
     if (!emittedDrag.value) {
@@ -61,9 +68,13 @@ const { x, y, style, isDragging } = useDraggable(wrapper, {
   },
   onEnd(position) {
     clampPos(position)
-    setTimeout(() => {
+    if (startPosition && distance(startPosition.value, position) < 2.5) {
       cancelClick.value = false
-    }, 10)
+    } else {
+      setTimeout(() => {
+        cancelClick.value = false
+      }, 10)
+    }
     emittedDrag.value = false
   },
 })
@@ -83,7 +94,6 @@ function cancelClickWhenDragging(event: MouseEvent) {
   }
 }
 
-import { wrapper as hostElement, portalTarget } from '../shadowRoot'
 const popover = useTemplateRef('popover')
 onClickOutside(popover, event => {
   // Nuxt UI Popover doesn't correctly handle shadow dom clicking event,
