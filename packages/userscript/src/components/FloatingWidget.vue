@@ -10,6 +10,7 @@ import {
 import { computed, nextTick, onMounted, reactive, ref, useTemplateRef } from 'vue'
 import { wrapper as hostElement, portalTarget } from '../shadowRoot'
 import { distance } from '../utils'
+import { useFloatButtonPosition } from '../composables/float'
 
 const props = defineProps<{
   icon?: string
@@ -47,20 +48,24 @@ function clampPos(pos: Position) {
     wrapperSize.height.value / 2,
     windowSize.height.value - wrapperSize.height.value / 2,
   )
+  return pos
 }
 
 const cancelClick = ref(false)
 const emittedDrag = ref(false)
 
-const startPosition = ref<Position>({ x: windowSize.width.value, y: 40 })
+const { position: storedPos } = useFloatButtonPosition()
+
+const startPosition = ref<Position>(clampPos(storedPos.value))
 
 const { x, y, style, isDragging } = useDraggable(wrapper, {
-  initialValue: { x: windowSize.width.value, y: 40 },
+  initialValue: startPosition.value,
   onStart(position) {
     startPosition.value = position
   },
   onMove() {
     cancelClick.value = true
+    // close panel when dragging
     if (!emittedDrag.value) {
       open.value = false
       emittedDrag.value = true
@@ -75,6 +80,7 @@ const { x, y, style, isDragging } = useDraggable(wrapper, {
         cancelClick.value = false
       }, 10)
     }
+    storedPos.value = position
     emittedDrag.value = false
   },
 })

@@ -147,7 +147,7 @@ async function fetchContent() {
       </UFormField>
     </div>
     <div class="flex-initial top-full mt-auto mb-0 flex flex-row justify-between gap-2">
-      <UButton block size="xl" variant="solid" type="submit"> 确定 </UButton>
+      <UButton block size="xl" variant="solid" type="submit"> 保存 </UButton>
       <UButton block size="xl" color="neutral" variant="soft" @click="emit('cancel')">
         取消
       </UButton>

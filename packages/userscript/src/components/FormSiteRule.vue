@@ -19,7 +19,8 @@ two
 `
 
 const state = reactive<SiteRuleOptions>({
-  name: '新规则',
+  name: '新规则 ' + new Date().toLocaleDateString(),
+  enabled: true,
   urlRegex: [RegExp.escape(document.location.href)],
   dictionaries: [],
   inlineDictionary: '',
@@ -33,6 +34,7 @@ const state = reactive<SiteRuleOptions>({
 
 if (props.rule) {
   state.name = props.rule.name
+  state.enabled = props.rule.enabled
   state.urlRegex = props.rule.urlRegex.slice()
   state.dictionaries = props.rule.dictionaries.slice()
   state.inlineDictionary = props.rule.inlineDictionary
@@ -78,6 +80,9 @@ function onSelectDictionaries(
     <div class="flex-1">
       <UFormField class="mb-4" label="规则名称" name="name">
         <UInput v-model="state.name" size="xl" variant="ghost" icon="i-lucide:pen-line" />
+      </UFormField>
+      <UFormField class="mb-4" label="启用/禁用" name="name">
+        <USwitch v-model="state.enabled" />
       </UFormField>
       <UFormField class="mb-4" label="网址URL正则" name="urlRegex">
         <UFieldGroup v-for="(regex, idx) of state.urlRegex" class="w-full">
@@ -141,7 +146,7 @@ function onSelectDictionaries(
       </UFormField>
     </div>
     <div class="flex-initial top-full mt-auto mb-0 flex flex-row justify-between gap-2">
-      <UButton block size="xl" variant="solid" type="submit"> 确定 </UButton>
+      <UButton block size="xl" variant="solid" type="submit"> 保存 </UButton>
       <UButton block size="xl" color="neutral" variant="soft" @click="emit('cancel')">
         取消
       </UButton>

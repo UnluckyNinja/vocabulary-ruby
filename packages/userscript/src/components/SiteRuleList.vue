@@ -11,6 +11,7 @@ const props = defineProps<{
         <USeparator class="my-2" v-if="idx > 0"></USeparator>
         <!-- row item -->
         <div class="flex flex-row gap-1 items-center">
+          <USwitch class="flex-none" v-model="rule.enabled"></USwitch>
           <!-- change name -->
           <UInput class="flex-1" v-model="rule.name" variant="ghost"></UInput>
           <!-- timestamp -->

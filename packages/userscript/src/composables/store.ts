@@ -13,10 +13,15 @@ export const useSettings = createGlobalState(() => {
   const showSettings = ref(false)
   const showCreateDictionary = ref(false)
   const showCreateSiteRule = ref(false)
+  const quickDicts = useStorage('quickDicts', [] as string[], GMStorage)
+  const quickStyle = useStorage('quickStyle', '', GMStorage)
+
   return {
     showSettings,
     showCreateDictionary,
     showCreateSiteRule,
+    quickDicts,
+    quickStyle,
   }
 })
 
@@ -137,6 +142,7 @@ export const useDictStore = createGlobalState(() => {
 
 export interface SiteRuleOptions {
   name: string
+  enabled: boolean
   urlRegex: string[]
   dictionaries: string[]
   inlineDictionary: string
@@ -152,6 +158,7 @@ export interface SiteRule {
   // reason not using url as ID: to allow easy duplication
   id: string
   name: string
+  enabled: boolean
   urlRegex: string[]
   createTime: number
   modifiedTime: number
@@ -176,6 +183,7 @@ export const useSiteRuleStore = createGlobalState(() => {
     rules.value.set(id, {
       id,
       name: options.name,
+      enabled: options.enabled,
       urlRegex: options.urlRegex,
       createTime: timestamp,
       modifiedTime: timestamp,
@@ -199,6 +207,8 @@ export const useSiteRuleStore = createGlobalState(() => {
       throw new Error(`Can't update, dictionary with ID doesn't exist: ${id}`)
     }
     const rule = rules.value.get(id)!
+    rule.name = options.name
+    rule.enabled = options.enabled
     rule.urlRegex = options.urlRegex
     rule.modifiedTime = Date.now()
     rule.dictionaries = options.dictionaries
