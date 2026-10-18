@@ -25,6 +25,12 @@ if (import.meta.env.DEV) {
   } else {
     console.log('scope->monkey, userscript scope')
   }
+
+  // vite devtools
+  const script = document.createElement('script')
+  script.type = 'module'
+  script.src = `${new URL(import.meta.url).origin}/__devtools/embedded.js`
+  document.body.appendChild(script)
 }
 
 const app = createApp(App)

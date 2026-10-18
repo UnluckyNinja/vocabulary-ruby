@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { FormSubmitEvent } from '@nuxt/ui'
-import { Dictionary, DictionaryOptions, useSettings } from '../composables/store'
+import {
+  Dictionary,
+  DictionaryOptions,
+  SiteRule,
+  SiteRuleOptions,
+  useSettings,
+  useSiteRuleStore,
+} from '../composables/store'
 import { useDictStore } from '../composables/store'
 import { portalTarget } from '../shadowRoot'
+import DictionaryList from './DictionaryList.vue'
 
 const tabs = [
   {
@@ -18,7 +26,10 @@ const tabs = [
   },
 ]
 
-const { showCreateDictionary, showCreateWebsiteRule } = useSettings()
+const { showCreateDictionary, showCreateSiteRule } = useSettings()
+
+const searchText = ref('')
+
 const {
   addDictionary,
   listDictionaries,
@@ -30,7 +41,6 @@ const {
 const rawDictionaries = computed(() => {
   return [...listDictionaries()]
 })
-const searchText = ref('')
 const dictionaries = computed(() => {
   let dicts = rawDictionaries.value.slice()
   if (searchText.value) {
@@ -50,6 +60,30 @@ function onEditDictionary(dict: Dictionary, event: FormSubmitEvent<DictionaryOpt
 }
 function onDeleteDictionary(dict: Dictionary) {
   deleteDictionary(dict.id)
+}
+
+const { addSiteRule, listSiteRules, updateSiteRule, deleteSiteRule } = useSiteRuleStore()
+const rawRules = computed(() => {
+  return [...listSiteRules()]
+})
+const rules = computed(() => {
+  let rules = rawRules.value.slice()
+  if (searchText.value) {
+    rules = rules.filter(it => it.name.includes(searchText.value))
+  }
+  rules.sort((a, b) => a.createTime - b.createTime)
+  return rules
+})
+
+function onCreateSiteRule(event: FormSubmitEvent<SiteRuleOptions>) {
+  addSiteRule(event.data)
+  showCreateSiteRule.value = false
+}
+function onEditSiteRule(rule: SiteRule, event: FormSubmitEvent<SiteRuleOptions>) {
+  updateSiteRule(rule.id, event.data)
+}
+function onDeleteSiteRule(rule: SiteRule) {
+  deleteSiteRule(rule.id)
 }
 </script>
 
@@ -79,68 +113,45 @@ function onDeleteDictionary(dict: Dictionary) {
           />
         </template>
       </UInput>
-      <!-- list -->
-      <div v-if="dictionaries.length > 0" class="my-4">
-        <template v-for="(dict, idx) in dictionaries" :key="dict.id">
-          <USeparator class="my-2" v-if="idx > 0"></USeparator>
-          <!-- row item -->
-          <div class="flex flex-row gap-1 items-center">
-            <!-- change name -->
-            <UInput class="flex-1" v-model="dict.name" variant="ghost"></UInput>
-            <!-- timestamp -->
-            <div class="flex-initial text-xs">
-              {{ new Date(dict.createTime).toLocaleDateString() }} 更新
-            </div>
-            <!-- edit -->
-            <UModal
-              :portal="portalTarget"
-              :dismissible="false"
-              :modal="true"
-              :overlay="true"
-              title="编辑词典"
-              scrollable
-            >
-              <UButton class="flex-none self-stretch" color="secondary">编辑</UButton>
-              <template #body="{ close }">
-                <div class="min-h-65dvh">
-                  <FormDictionary
-                    :dict="dict"
-                    @cancel="close"
-                    @submit="
-                      onEditDictionary(dict, $event)
-                      close()
-                    "
-                  />
-                </div>
-              </template>
-            </UModal>
-            <!-- delete dictionary -->
-            <UModal
-              :portal="portalTarget"
-              :dismissible="false"
-              :modal="true"
-              :overlay="true"
-              title="你确定吗？"
-            >
-              <UButton color="error" variant="outline" icon="i-lucide:trash-2"></UButton>
-              <template #body>你即将删除 {{ dict.name }}， 该操作无法撤销。 </template>
-              <template #footer="{ close }">
-                <UButton
-                  @click="
-                    onDeleteDictionary(dict)
-                    close
-                  "
-                  >确定删除</UButton
-                >
-                <UButton color="neutral" @click="close">返回</UButton>
-              </template>
-            </UModal>
-          </div>
+      <DictionaryList :dictionaries="dictionaries" :editable="true">
+        <template #action="{ dict }">
+          <!-- edit dictionary -->
+          <UModal
+            :portal="portalTarget"
+            :dismissible="false"
+            :modal="true"
+            :overlay="true"
+            title="编辑词典"
+            scrollable
+          >
+            <UButton class="flex-none self-stretch" color="secondary">编辑</UButton>
+            <template #body="{ close }">
+              <div class="min-h-65dvh">
+                <FormDictionary
+                  :dict="dict"
+                  @cancel="close"
+                  @submit="(onEditDictionary(dict, $event), close())"
+                />
+              </div>
+            </template>
+          </UModal>
+          <!-- delete dictionary -->
+          <UModal
+            :portal="portalTarget"
+            :dismissible="false"
+            :modal="true"
+            :overlay="true"
+            title="你确定吗？"
+          >
+            <UButton color="error" variant="outline" icon="i-lucide:trash-2"></UButton>
+            <template #body>你即将删除 {{ dict.name }}， 该操作无法撤销。 </template>
+            <template #footer="{ close }">
+              <UButton @click="(onDeleteDictionary(dict), close)">确定删除</UButton>
+              <UButton color="neutral" @click="close">返回</UButton>
+            </template>
+          </UModal>
         </template>
-      </div>
-      <div v-else class="my-4">
-        <UEmpty icon="i-lucide:book-dashed" title="未添加/找到词典"></UEmpty>
-      </div>
+      </DictionaryList>
       <!-- 
         MARK: create dictionary
       -->
@@ -161,6 +172,87 @@ function onDeleteDictionary(dict: Dictionary) {
         </template>
       </UModal>
     </template>
-    <template #websites> </template>
+    <template #websites>
+      <!-- 
+        MARK: Website rule
+      -->
+      <!-- search bar, exact to above -->
+      <UInput
+        class="w-full"
+        icon="i-lucide:search"
+        size="md"
+        variant="outline"
+        placeholder="筛选列表"
+        v-model="searchText"
+      >
+        <template v-if="searchText?.length" #trailing>
+          <UButton
+            class="cursor-pointer"
+            color="neutral"
+            variant="link"
+            icon="i-lucide-circle-x"
+            aria-label="取消过滤"
+            @click="searchText = ''"
+          />
+        </template>
+      </UInput>
+      <SiteRuleList :rules="rules">
+        <template #action="{ rule }">
+          <UModal
+            :portal="portalTarget"
+            :dismissible="false"
+            :modal="true"
+            :overlay="true"
+            title="编辑词典"
+            scrollable
+          >
+            <UButton class="flex-none self-stretch" color="secondary">编辑</UButton>
+            <template #body="{ close }">
+              <div class="min-h-65dvh">
+                <FormSiteRule
+                  :rule="rule"
+                  @cancel="close"
+                  @submit="(onEditSiteRule(rule, $event), close())"
+                />
+              </div>
+            </template>
+          </UModal>
+          <!-- delete site rule -->
+          <UModal
+            :portal="portalTarget"
+            :dismissible="false"
+            :modal="true"
+            :overlay="true"
+            title="你确定吗？"
+          >
+            <UButton color="error" variant="outline" icon="i-lucide:trash-2"></UButton>
+            <template #body>你即将删除 {{ rule.name }}， 该操作无法撤销。 </template>
+            <template #footer="{ close }">
+              <UButton @click="(onDeleteSiteRule(rule), close)">确定删除</UButton>
+              <UButton color="neutral" @click="close">返回</UButton>
+            </template>
+          </UModal>
+        </template>
+      </SiteRuleList>
+      <!-- 
+        MARK: create rule
+      -->
+      <UModal
+        v-model:open="showCreateSiteRule"
+        :portal="portalTarget"
+        :dismissible="false"
+        :modal="true"
+        :overlay="true"
+        title="新建站点规则"
+        scrollable
+      >
+        <UButton block>添加站点规则</UButton>
+        <template #body>
+          <div class="min-h-65dvh">
+            <FormSiteRule @cancel="showCreateSiteRule = false" @submit="onCreateSiteRule" />
+          </div>
+        </template>
+      </UModal>
+    </template>
   </UTabs>
 </template>

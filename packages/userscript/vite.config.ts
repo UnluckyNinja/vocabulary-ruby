@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite-plus'
 import vue from '@vitejs/plugin-vue'
 import monkey, { cdn } from 'vite-plugin-monkey'
-import Inspect from 'vite-plugin-inspect'
 import UnoCSS from 'unocss/vite'
 import unocssInline from 'unocss-inline'
 import NuxtUI from '@nuxt/ui/vite'
@@ -10,6 +9,7 @@ import NuxtUI from '@nuxt/ui/vite'
 export default defineConfig(({ command }) => ({
   devtools: {
     apply: 'serve',
+    allowedOrigins: ['https://jp.finalfantasyxiv.com'],
   },
   test: {
     // Vitest v4 compatibility: preserve mock call history.
@@ -19,7 +19,6 @@ export default defineConfig(({ command }) => ({
     clearMocks: false,
   },
   plugins: [
-    Inspect(),
     vue(),
     NuxtUI({
       ui: {

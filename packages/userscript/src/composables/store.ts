@@ -12,11 +12,11 @@ import { ref } from 'vue'
 export const useSettings = createGlobalState(() => {
   const showSettings = ref(false)
   const showCreateDictionary = ref(false)
-  const showCreateWebsiteRule = ref(false)
+  const showCreateSiteRule = ref(false)
   return {
     showSettings,
     showCreateDictionary,
-    showCreateWebsiteRule,
+    showCreateSiteRule,
   }
 })
 
@@ -117,6 +117,8 @@ export const useDictStore = createGlobalState(() => {
     if (!dicts.value.has(id)) {
       throw new Error(`Can't update, dictionary with ID doesn't exist: ${id}`)
     }
+    const dict = dicts.value.get(id)!
+    dict.modifiedTime = Date.now()
     saveContent(id, content)
   }
   function listDictionaries() {
@@ -130,5 +132,90 @@ export const useDictStore = createGlobalState(() => {
     updateDictionary,
     updateDictionaryContent,
     listDictionaries,
+  }
+})
+
+export interface SiteRuleOptions {
+  name: string
+  urlRegex: string[]
+  dictionaries: string[]
+  inlineDictionary: string
+  style: string
+  selector: {
+    root: string
+    target: string
+    ignore: string
+  }
+}
+
+export interface SiteRule {
+  // reason not using url as ID: to allow easy duplication
+  id: string
+  name: string
+  urlRegex: string[]
+  createTime: number
+  modifiedTime: number
+  dictionaries: string[]
+  inlineDictionary: string
+  style: string
+  selector: {
+    root: string
+    target: string
+    ignore: string
+  }
+}
+export const useSiteRuleStore = createGlobalState(() => {
+  const rules = useStorage('site-rule', new Map<string, SiteRule>(), GMStorage)
+
+  function addSiteRule(options: SiteRuleOptions) {
+    let id = ''
+    while (!id || rules.value.has(id)) {
+      id = window.crypto.randomUUID()
+    }
+    const timestamp = Date.now()
+    rules.value.set(id, {
+      id,
+      name: options.name,
+      urlRegex: options.urlRegex,
+      createTime: timestamp,
+      modifiedTime: timestamp,
+      dictionaries: options.dictionaries,
+      inlineDictionary: options.inlineDictionary,
+      selector: options.selector,
+      style: options.style,
+    })
+    return id
+  }
+
+  function getSiteRule(id: string) {
+    return rules.value.get(id)
+  }
+  function deleteSiteRule(id: string) {
+    return rules.value.delete(id)
+  }
+
+  function updateSiteRule(id: string, options: SiteRuleOptions) {
+    if (!rules.value.has(id)) {
+      throw new Error(`Can't update, dictionary with ID doesn't exist: ${id}`)
+    }
+    const rule = rules.value.get(id)!
+    rule.urlRegex = options.urlRegex
+    rule.modifiedTime = Date.now()
+    rule.dictionaries = options.dictionaries
+    rule.inlineDictionary = options.inlineDictionary
+    rule.selector = options.selector
+    rule.style = options.style
+  }
+
+  function listSiteRules() {
+    return rules.value.values()
+  }
+
+  return {
+    addSiteRule,
+    getSiteRule,
+    deleteSiteRule,
+    updateSiteRule,
+    listSiteRules,
   }
 })
