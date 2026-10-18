@@ -2,41 +2,38 @@
 import { ref, onMounted } from 'vue'
 import { GM_registerMenuCommand } from '$'
 
-import { useMatcher } from './composables/useMatcher'
 import SettingsDialog from './components/SettingsDialog.vue'
 import { useSettings } from './composables/store.ts'
 import { portalTarget } from './shadowRoot.ts'
 
-const { matcher, observer, prepareMatcher, toggleObserver: toggle } = useMatcher()
+// const handleReload = async () => {
+//   changeState('running')
+//   await prepareMatcher(window.location.href)
+//   if (matcher.value) {
+//     toggleObserver(true)
+//   } else {
+//     changeState('ready')
+//   }
+// }
 
-const handleReload = async () => {
-  changeState('running')
-  await prepareMatcher(window.location.href)
-  if (matcher.value) {
-    toggleObserver(true)
-  } else {
-    changeState('ready')
-  }
-}
+// const toggleObserver = (enable: boolean) => {
+//   changeState('running')
 
-const toggleObserver = (enable: boolean) => {
-  changeState('running')
+//   const result = toggle(enable)
 
-  const result = toggle(enable)
-
-  if (result) {
-    changeState('reset')
-  } else {
-    changeState('ready')
-  }
-}
+//   if (result) {
+//     changeState('reset')
+//   } else {
+//     changeState('ready')
+//   }
+// }
 
 onMounted(async () => {
   // Register menu command
   GM_registerMenuCommand('Settings', () => {
     showSettings.value = true
   })
-  handleReload()
+  // handleReload()
 })
 /**
  * ready - can start process
@@ -51,13 +48,13 @@ function changeState(value: typeof state.value) {
 // Note: No more global enabled watch.
 // Changes in settings will trigger handleReload via emit.
 
-const handleToggle = () => {
-  if (state.value === 'ready') {
-    handleReload()
-  } else if (state.value === 'reset') {
-    toggleObserver(false)
-  }
-}
+// const handleToggle = () => {
+//   if (state.value === 'ready') {
+//     handleReload()
+//   } else if (state.value === 'reset') {
+//     toggleObserver(false)
+//   }
+// }
 
 const { showSettings } = useSettings()
 </script>

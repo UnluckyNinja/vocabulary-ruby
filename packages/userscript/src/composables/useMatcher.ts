@@ -1,65 +1,89 @@
-import { shallowRef } from 'vue';
-import { getActiveConfigs } from '../config';
-import { loadDictionary } from '../engine/loader';
-import { createMatcher, Matcher } from '../engine/matcher';
-import { DOMObserver } from '../engine/observer';
+import { ref } from 'vue'
+import { createMatcher } from '../engine/matcher'
+import { DOMObserver } from '../engine/observer'
+import { createGlobalState } from '@vueuse/core'
+import { SiteRule, useDictStore } from './store'
 
-export function useMatcher() {
+export const useRuby = createGlobalState(() => {
+  const observer = new DOMObserver()
+  const preparing = ref(false)
+  const { running } = observer.status
+  const wordsMap = new Map<string, string>()
 
+  const { getDictionaryContent } = useDictStore()
 
-  const matcher = shallowRef<Matcher | null>(null)
-  const observer = shallowRef<DOMObserver | null>(null);
+  let restartCallback = () => {}
 
-  async function prepareMatcher(url: string) {
-    // Find active configs for current site
-    const activeConfigs = getActiveConfigs(url);
-
-    if (activeConfigs.length === 0) {
-      console.log('[Vocabulary Ruby] No active profiles match this site.');
-      return;
+  async function startWithRule(rule: SiteRule) {
+    if (running.value) {
+      observer.stop()
     }
-
-    // Aggregate dictionaries
-    // const combinedMap = await processDictionaries(activeConfigs);
-    const combinedMap = new Map()
-    activeConfigs.forEach(it => {
-      const dictCache = loadDictionary(it.id)
-      dictCache.forEach((value, key) => {
-        combinedMap.set(key, value)
+    preparing.value = true
+    wordsMap.clear()
+    for (const id of rule.dictionaries) {
+      const text = getDictionaryContent(id)
+      const lines = text.value.split(/\r?\n/)
+      lines.forEach(line => {
+        const pair = line.split(',')
+        wordsMap.set(pair[0], pair[1])
       })
-    });
-
-    if (combinedMap.size === 0) {
-      console.log('[VocabularyRuby] No entries found in active dictionaries.');
-      return;
     }
-
-    // Create matcher
-    matcher.value = await createMatcher(combinedMap);
+    const lines = rule.inlineDictionary.split(/\r?\n/)
+    lines.forEach(line => {
+      const pair = line.split(',')
+      wordsMap.set(pair[0], pair[1])
+    })
+    const matcher = await createMatcher(wordsMap)
+    // @TODO add style to page
+    restartCallback = () => {
+      observer.start(matcher, {
+        rootSelector: rule.selector.root,
+        targetSelector: rule.selector.target,
+        ignoreSelector: rule.selector.ignore,
+      })
+    }
+    restartCallback()
+    preparing.value = false
   }
-
-  function toggleObserver(enable: boolean) {
-
-    if (enable && matcher.value) {
-      if (observer.value) {
-        observer.value.stop();
-        observer.value = null;
-      }
-      observer.value = new DOMObserver(matcher.value);
-      observer.value.start();
-      return true
-    } else {
-      if (observer.value) {
-        observer.value.stop();
-        observer.value = null;
-      }
-      return false
+  async function startSimple(dictionaryIDs: string[], _style: string) {
+    if (running.value) {
+      observer.stop()
     }
-  };
+    preparing.value = true
+    wordsMap.clear()
+    for (const id of dictionaryIDs) {
+      const text = getDictionaryContent(id)
+      const lines = text.value.split(/\r?\n/)
+      lines.forEach(line => {
+        const pair = line.split(',')
+        wordsMap.set(pair[0], pair[1])
+      })
+    }
+    const matcher = await createMatcher(wordsMap)
+    // @TODO add style to page
+    restartCallback = () => {
+      observer.start(matcher)
+    }
+    restartCallback()
+    preparing.value = false
+  }
+  function restart() {
+    if (running.value) {
+      observer.stop()
+    }
+    preparing.value = true
+    restartCallback()
+    preparing.value = false
+  }
+  function stop() {
+    observer.stop()
+  }
   return {
-    matcher,
-    observer,
-    prepareMatcher,
-    toggleObserver,
+    preparing,
+    running,
+    startWithRule,
+    startSimple,
+    restart,
+    stop,
   }
-}
+})

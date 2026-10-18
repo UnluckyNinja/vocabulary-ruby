@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useDictStore, useSettings } from '../composables/store'
+import { useRuby } from '../composables/useMatcher'
 
 const { showSettings, quickDicts, quickStyle } = useSettings()
 function clickSettings() {
@@ -33,6 +34,26 @@ function onSelectDictionaries(
 ) {
   quickDicts.value = value.map(it => it.value)
 }
+
+const { running, preparing, startSimple, stop } = useRuby()
+
+const activateButtonText = computed(() => {
+  if (preparing.value) {
+    return '正在启动……'
+  }
+  if (running.value) {
+    return '关闭翻译'
+  }
+  return '启动'
+})
+
+function onActivate() {
+  if (running.value) {
+    stop()
+    return
+  }
+  startSimple(quickDicts.value, quickStyle.value)
+}
 </script>
 
 <template>
@@ -50,7 +71,9 @@ function onSelectDictionaries(
     <UTextarea v-model="quickStyle" class="w-full" :rows="10"></UTextarea>
     <template #footer>
       <div class="flex flex-row items-stretch space-x-lg">
-        <UButton block size="lg">启用</UButton>
+        <UButton block size="lg" :loading="preparing" @click="onActivate">
+          {{ activateButtonText }}
+        </UButton>
         <UButton class="flex-none" color="secondary" size="lg" @click="clickSettings">
           <div class="i-lucide:settings"></div>
         </UButton>
