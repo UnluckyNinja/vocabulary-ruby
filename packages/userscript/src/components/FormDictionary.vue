@@ -3,6 +3,7 @@ import { FormError, FormSubmitEvent, RadioGroupItem } from '@nuxt/ui'
 import { computed, reactive, ref } from 'vue'
 import { GM } from '$'
 import { Dictionary, useDictStore, type DictionaryOptions } from '../composables/store'
+import { csvFormatRow, csvParseRows } from 'd3-dsv'
 
 const props = defineProps<{
   dict?: Dictionary
@@ -58,19 +59,18 @@ two,二
 `
 })
 
-const regex = /^(?:.+),(?:.+)$/
 function validate(state: Partial<Schema>): FormError[] {
   const errors = []
   if (!state.name) errors.push({ name: 'name', message: '内容不能为空' })
   if (!state.content) errors.push({ name: 'content', message: '内容不能为空' })
   if (state.content) {
-    const words = state.content.trim().split(/\r?\n/)
+    const words = csvParseRows(state.content)
     for (let i = 0; i < words.length; i++) {
-      const word = words[i]
-      if (!regex.exec(word)) {
+      const [key, value] = words[i]
+      if (!key || !value) {
         errors.push({
           name: 'content',
-          message: `第${i + 1}行 ${word} 不符合"原文单词,译文单词"格式`,
+          message: `第${i + 1}行 ${csvFormatRow(words[i])} 不符合"原文单词,译文单词"格式`,
         })
       }
     }

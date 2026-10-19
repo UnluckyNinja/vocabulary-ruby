@@ -3,6 +3,7 @@ import { createMatcher } from '../engine/matcher'
 import { DOMObserver } from '../engine/observer'
 import { createGlobalState, useStyleTag } from '@vueuse/core'
 import { SiteRule, useDictStore } from './store'
+import { csvParseRows } from 'd3-dsv'
 
 export const useRuby = createGlobalState(() => {
   const observer = new DOMObserver()
@@ -31,16 +32,14 @@ export const useRuby = createGlobalState(() => {
     wordsMap.clear()
     for (const id of rule.dictionaries) {
       const text = getDictionaryContent(id)
-      const lines = text.value.trim().split(/\r?\n/)
-      lines.forEach(line => {
-        const pair = line.split(',')
-        wordsMap.set(pair[0], pair[1])
+      const words = csvParseRows(text.value)
+      words.forEach(([key, value]) => {
+        wordsMap.set(key, value)
       })
     }
-    const lines = rule.inlineDictionary.trim().split(/\r?\n/)
-    lines.forEach(line => {
-      const pair = line.split(',')
-      wordsMap.set(pair[0], pair[1])
+    const words = csvParseRows(rule.inlineDictionary)
+    words.forEach(([key, value]) => {
+      wordsMap.set(key, value)
     })
     const matcher = await createMatcher(wordsMap)
     restartCallback = () => {
@@ -68,10 +67,9 @@ export const useRuby = createGlobalState(() => {
     wordsMap.clear()
     for (const id of dictionaryIDs) {
       const text = getDictionaryContent(id)
-      const lines = text.value.trim().split(/\r?\n/)
-      lines.forEach(line => {
-        const pair = line.split(',')
-        wordsMap.set(pair[0], pair[1])
+      const words = csvParseRows(text.value)
+      words.forEach(([key, value]) => {
+        wordsMap.set(key, value)
       })
     }
     const matcher = await createMatcher(wordsMap)

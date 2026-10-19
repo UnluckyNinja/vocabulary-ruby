@@ -3,6 +3,7 @@ import { FormError, FormSubmitEvent } from '@nuxt/ui'
 import { computed, reactive } from 'vue'
 import { SiteRule, SiteRuleOptions, useDictStore } from '../composables/store'
 import { isValidSelector } from '../utils'
+import { csvFormatRow, csvParseRows } from 'd3-dsv'
 
 const props = defineProps<{
   rule?: SiteRule
@@ -70,13 +71,13 @@ function validate(state: Partial<SiteRuleOptions>): FormError[] {
   if (!state.name) errors.push({ name: 'name', message: '名称不能为空' })
   // inlinlineDictionaryine
   if (state.inlineDictionary) {
-    const words = state.inlineDictionary.split(/\r?\n/)
+    const words = csvParseRows(state.inlineDictionary)
     for (let i = 0; i < words.length; i++) {
-      const word = words[i]
-      if (!regex.test(word)) {
+      const [key, value] = words[i]
+      if (!key || !value) {
         errors.push({
           name: 'inlineDictionary',
-          message: `第${i + 1}行 ${word} 不符合"原文单词,译文单词"格式`,
+          message: `第${i + 1}行 ${csvFormatRow(words[i])} 不符合"原文单词,译文单词"格式`,
         })
       }
     }
