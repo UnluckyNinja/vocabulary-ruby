@@ -33,14 +33,21 @@ export default defineConfig(({ command }) => ({
       entry: 'src/main.ts',
       userscript: {
         icon: 'https://vitejs.dev/logo.svg',
-        namespace: 'vocabulary-ruby',
+        namespace: 'https://unun.dev',
         match:
           command === 'serve' // vite dev
             ? ['https://*.finalfantasyxiv.com/*']
             : ['https://*/*'],
-        name: 'Vocabulary Ruby',
+        name: '沃卡露比',
         author: 'UnluckyNinja',
-        description: 'Auto-annotate dictionary words with ruby tags',
+        description: '以注音标记方式在文本上显示词语翻译，适用于游戏名词、专业术语等',
+        $extra: [
+          ['name:en', 'Vocabulary Ruby'],
+          [
+            'description:en',
+            'Auto-annotate dictionary words with ruby tags, for gaming words, or professional terms',
+          ],
+        ],
         connect: [
           'docs.google.com',
           'googleusercontent.com',
@@ -50,6 +57,7 @@ export default defineConfig(({ command }) => ({
         ],
       },
       build: {
+        fileName: 'vocabulary-ruby.user.js',
         externalGlobals: {
           vue: cdn.jsdelivr('Vue', 'dist/vue.global.prod.js'),
         },

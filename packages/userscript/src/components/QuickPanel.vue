@@ -69,7 +69,7 @@ function onStartRule() {
 
 <template>
   <UCard>
-    <h3>使用词典</h3>
+    <h3>临时词典</h3>
     <UListbox
       class="max-h-sm"
       multiple
@@ -78,7 +78,7 @@ function onStartRule() {
       @update:modelValue="onSelectDictionaries"
       :items="dictItems"
     ></UListbox>
-    <h3 class="mt-4">样式规则</h3>
+    <h3 class="mt-4">临时样式</h3>
     <UTextarea v-model="quickStyle" class="w-full" :rows="10"></UTextarea>
     <template #footer>
       <div class="flex flex-row items-stretch space-x-lg">
@@ -87,7 +87,7 @@ function onStartRule() {
         </UButton>
         <template v-else>
           <UButton block size="lg" :loading="preparing" @click="onStartSimple">
-            启用临时翻译
+            {{ selectedDicts.length > 0 ? '启用临时翻译' : '请选择至少一个词典' }}
           </UButton>
           <UButton
             block
