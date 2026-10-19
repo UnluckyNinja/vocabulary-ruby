@@ -1,4 +1,10 @@
-import { defineConfig, presetWind4, presetIcons, transformerDirectives, transformerVariantGroup } from 'unocss'
+import {
+  defineConfig,
+  presetWind4,
+  presetIcons,
+  transformerDirectives,
+  transformerVariantGroup,
+} from 'unocss'
 
 export default defineConfig({
   presets: [
@@ -11,8 +17,5 @@ export default defineConfig({
   outputToCssLayers: {
     allLayers: true,
   },
-  transformers: [
-    transformerDirectives(),
-    transformerVariantGroup(),
-  ]
+  transformers: [transformerDirectives(), transformerVariantGroup()],
 })

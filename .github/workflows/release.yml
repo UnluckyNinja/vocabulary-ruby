@@ -1,8 +1,8 @@
 name: Release
 
 on:
-  push: 
-    tags: 
+  push:
+    tags:
       - 'v*'
 jobs:
   release:
@@ -27,4 +27,3 @@ jobs:
         run: pnpx changelogithub --assets ./packages/userscript/dist/vocabulary-ruby.user.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
