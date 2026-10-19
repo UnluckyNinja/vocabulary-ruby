@@ -105,6 +105,12 @@ function onSelectDictionaries(
 ) {
   state.dictionaries = value.map(it => it.value)
 }
+function onAddUrlRegex() {
+  state.urlRegex.push(RegExp.escape(document.location.href))
+}
+function onDeleteUrlRegex(idx: number) {
+  state.urlRegex.splice(idx, 1)
+}
 </script>
 
 <template>
@@ -118,10 +124,16 @@ function onSelectDictionaries(
       </UFormField>
       <UFormField class="mb-4" label="网址URL正则" name="urlRegex">
         <UFieldGroup v-for="(regex, idx) of state.urlRegex" class="w-full">
-          <UButton class="whitespace-nowrap"> /^ </UButton>
-          <UInput :modelValue="regex" @update:modelValue="state.urlRegex[idx] = $event" />
-          <UButton> / </UButton>
+          <UButton class="whitespace-nowrap" variant="subtle"> /^ </UButton>
+          <UInput
+            class="flex-1"
+            :modelValue="regex"
+            @update:modelValue="state.urlRegex[idx] = $event"
+          />
+          <UButton variant="subtle"> / </UButton>
+          <UButton icon="i-lucide:trash-2" color="error" @click="onDeleteUrlRegex(idx)"></UButton>
         </UFieldGroup>
+        <UButton class="mt-2" block size="xs" @click="onAddUrlRegex">+</UButton>
       </UFormField>
       <UFormField class="mb-4" label="词典" name="dictionaries">
         <UListbox
