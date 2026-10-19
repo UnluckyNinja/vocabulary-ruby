@@ -6,7 +6,7 @@ import {
   GM_listValues,
   GM_setValue,
 } from '$'
-import { createGlobalState, useStorage } from '@vueuse/core'
+import { createGlobalState, useEventBus, useStorage } from '@vueuse/core'
 import { ref } from 'vue'
 
 export const useSettings = createGlobalState(() => {
@@ -105,17 +105,17 @@ export const useDictStore = createGlobalState(() => {
     return dicts.value.delete(id)
   }
   /**
-   * @param options.content will be ignored
+   * @param options.content will be ignored, use `updateDictionaryContent`
    */
-  function updateDictionary(id: string, options: DictionaryOptions) {
+  function updateDictionary(id: string, options: Partial<DictionaryOptions>) {
     if (!dicts.value.has(id)) {
       throw new Error(`Can't update, dictionary with ID doesn't exist: ${id}`)
     }
     const dict = dicts.value.get(id)!
-    dict.name = options.name
-    dict.type = options.type
+    dict.name = options.name ?? dict.name
+    dict.type = options.type ?? dict.type
     if (options.type === 'network') {
-      dict.updateURL = options.updateURL
+      dict.updateURL = options.updateURL ?? dict.updateURL
     }
   }
   function updateDictionaryContent(id: string, content: string) {
@@ -173,6 +173,7 @@ export interface SiteRule {
 }
 export const useSiteRuleStore = createGlobalState(() => {
   const rules = useStorage('site-rule', new Map<string, SiteRule>(), GMStorage)
+  const bus = useEventBus('site-rule-change')
 
   function addSiteRule(options: SiteRuleOptions) {
     let id = ''
@@ -180,7 +181,7 @@ export const useSiteRuleStore = createGlobalState(() => {
       id = window.crypto.randomUUID()
     }
     const timestamp = Date.now()
-    rules.value.set(id, {
+    const rule = {
       id,
       name: options.name,
       enabled: options.enabled,
@@ -191,30 +192,36 @@ export const useSiteRuleStore = createGlobalState(() => {
       inlineDictionary: options.inlineDictionary,
       selector: options.selector,
       style: options.style,
-    })
-    return id
+    }
+    rules.value.set(id, rule)
+    bus.emit('add', rule)
+    return rule
   }
 
   function getSiteRule(id: string) {
     return rules.value.get(id)
   }
   function deleteSiteRule(id: string) {
+    const rule = rules.value.get(id)
+    bus.emit('delete', rule)
     return rules.value.delete(id)
   }
 
-  function updateSiteRule(id: string, options: SiteRuleOptions) {
+  function updateSiteRule(id: string, options: Partial<SiteRuleOptions>) {
     if (!rules.value.has(id)) {
       throw new Error(`Can't update, dictionary with ID doesn't exist: ${id}`)
     }
     const rule = rules.value.get(id)!
-    rule.name = options.name
-    rule.enabled = options.enabled
-    rule.urlRegex = options.urlRegex
+    rule.name = options.name ?? rule.name
+    rule.enabled = options.enabled ?? rule.enabled
+    rule.urlRegex = options.urlRegex ?? rule.urlRegex
     rule.modifiedTime = Date.now()
-    rule.dictionaries = options.dictionaries
-    rule.inlineDictionary = options.inlineDictionary
-    rule.selector = options.selector
-    rule.style = options.style
+    rule.dictionaries = options.dictionaries ?? rule.dictionaries
+    rule.inlineDictionary = options.inlineDictionary ?? rule.inlineDictionary
+    rule.selector = options.selector ?? rule.selector
+    rule.style = options.style ?? rule.style
+
+    bus.emit('update', rule)
   }
 
   function listSiteRules() {
@@ -222,6 +229,7 @@ export const useSiteRuleStore = createGlobalState(() => {
   }
 
   return {
+    bus,
     addSiteRule,
     getSiteRule,
     deleteSiteRule,

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Dictionary } from '../composables/store'
+import { Dictionary, useDictStore } from '../composables/store'
 const props = withDefaults(
   defineProps<{
     dictionaries: Dictionary[]
@@ -9,6 +9,14 @@ const props = withDefaults(
     editable: false,
   },
 )
+
+const { updateDictionary } = useDictStore()
+
+function onChangeName(dict: Dictionary, newName: string) {
+  updateDictionary(dict.id, {
+    name: newName,
+  })
+}
 </script>
 <template>
   <div class="my-4">
@@ -18,7 +26,13 @@ const props = withDefaults(
         <!-- row item -->
         <div class="flex flex-row gap-1 items-center">
           <!-- change name -->
-          <UInput v-if="editable" class="flex-1" v-model="dict.name" variant="ghost"></UInput>
+          <UInput
+            v-if="editable"
+            class="flex-1"
+            :modelValue="dict.name"
+            @update:modelValue="onChangeName(dict, $event)"
+            variant="ghost"
+          ></UInput>
           <div v-else class="flex-1">{{ dict.name }}</div>
           <!-- timestamp -->
           <div class="flex-initial text-xs">

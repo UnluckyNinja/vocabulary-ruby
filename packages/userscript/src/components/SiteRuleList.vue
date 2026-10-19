@@ -1,8 +1,22 @@
 <script lang="ts" setup>
-import { SiteRule } from '../composables/store'
+import { SiteRule, useSiteRuleStore } from '../composables/store'
 const props = defineProps<{
   rules: SiteRule[]
 }>()
+
+const { updateSiteRule } = useSiteRuleStore()
+
+function onChangeName(rule: SiteRule, newName: string) {
+  updateSiteRule(rule.id, {
+    name: newName,
+  })
+}
+
+function onToggleRule(rule: SiteRule, value: boolean) {
+  updateSiteRule(rule.id, {
+    enabled: value,
+  })
+}
 </script>
 <template>
   <div class="my-4">
@@ -11,9 +25,18 @@ const props = defineProps<{
         <USeparator class="my-2" v-if="idx > 0"></USeparator>
         <!-- row item -->
         <div class="flex flex-row gap-1 items-center">
-          <USwitch class="flex-none" v-model="rule.enabled"></USwitch>
+          <USwitch
+            class="flex-none"
+            :modelValue="rule.enabled"
+            @update:modelValue="onToggleRule(rule, $event)"
+          ></USwitch>
           <!-- change name -->
-          <UInput class="flex-1" v-model="rule.name" variant="ghost"></UInput>
+          <UInput
+            class="flex-1"
+            :modelValue="rule.name"
+            @update:modelValue="onChangeName(rule, $event)"
+            variant="ghost"
+          ></UInput>
           <!-- timestamp -->
           <div class="flex-initial text-xs">
             {{ new Date(rule.createTime).toLocaleDateString() }}

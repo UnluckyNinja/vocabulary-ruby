@@ -9,6 +9,7 @@ export const useRuby = createGlobalState(() => {
   const preparing = ref(false)
   const { running } = observer.status
   const wordsMap = new Map<string, string>()
+  const mode = ref<'simple' | 'rule'>('simple')
 
   const { getDictionaryContent } = useDictStore()
   const { css, load, unload, isLoaded } = useStyleTag('', { immediate: false, manual: true })
@@ -17,9 +18,16 @@ export const useRuby = createGlobalState(() => {
 
   async function startWithRule(rule: SiteRule) {
     preparing.value = true
+    mode.value = 'rule'
     if (running.value) {
       observer.stop()
     }
+
+    // add style
+    css.value = rule.style
+    load()
+
+    // collect words
     wordsMap.clear()
     for (const id of rule.dictionaries) {
       const text = getDictionaryContent(id)
@@ -35,7 +43,6 @@ export const useRuby = createGlobalState(() => {
       wordsMap.set(pair[0], pair[1])
     })
     const matcher = await createMatcher(wordsMap)
-    // @TODO add style to page
     restartCallback = () => {
       observer.start(matcher, {
         rootSelector: rule.selector.root,
@@ -43,16 +50,21 @@ export const useRuby = createGlobalState(() => {
         ignoreSelector: rule.selector.ignore,
       })
     }
-    css.value = rule.style
-    load()
     restartCallback()
     preparing.value = false
   }
   async function startSimple(dictionaryIDs: string[], style: string) {
     preparing.value = true
+    mode.value = 'simple'
     if (running.value) {
       observer.stop()
     }
+
+    // add style
+    css.value = style
+    load()
+
+    // collect words
     wordsMap.clear()
     for (const id of dictionaryIDs) {
       const text = getDictionaryContent(id)
@@ -63,12 +75,9 @@ export const useRuby = createGlobalState(() => {
       })
     }
     const matcher = await createMatcher(wordsMap)
-    // @TODO add style to page
     restartCallback = () => {
       observer.start(matcher)
     }
-    css.value = style
-    load()
     restartCallback()
     preparing.value = false
   }
@@ -87,6 +96,7 @@ export const useRuby = createGlobalState(() => {
     observer.stop()
   }
   return {
+    mode,
     preparing,
     running,
     isCssLoaded: isLoaded,
