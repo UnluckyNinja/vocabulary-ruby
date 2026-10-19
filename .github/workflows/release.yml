@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push: 
+    tags: 
+      - 'v*'
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Setup JS
+        uses: sxzz/workflows/setup-js@main
+        with:
+          fetch-all: true
+          cache: true
+
+      - name: Build
+        run: pnpm run --filter userscript build
+
+      - name: Generate GitHub Changelog
+        run: pnpx changelogithub --assets ./packages/userscript/dist/vocabulary-ruby.user.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
