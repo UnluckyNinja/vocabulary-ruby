@@ -2,22 +2,23 @@
 
 A Tampermonkey userscript that imports CSV dictionaries and automatically annotates matching words on web pages with `<ruby>` elements.
 
+
+## Usage
+
+[Install script manager (Tampermonkey, Vilentmonkey)](https://greasyfork.org/)
+Install script from https://greasyfork.org/zh-CN/scripts/601005 or github release
+
+1. Add a dictionary
+2. Create a site rule for it, or use it in the floating panel directly.
+
 ## Project Structure
 
 This project is a monorepo managed by `pnpm`.
 
 - `packages/userscript`: The main userscript project (Using `vite-plugin-monkey`).
 
-## Usage
-
-### Preset
-A preset is a configuration composed with some **website filters** to determine what websites and which part of it to process, and **dictionaries** to translate text.
-
-Preset can be specified with one or more remote sources to append above settings.
-
-### Website Filter
-
 ## Develop locally
+you can use [VitePlus](https://viteplus.dev/) or pnpm
 
 1. **Install Dependencies:**
    ```bash
@@ -36,12 +37,11 @@ Preset can be specified with one or more remote sources to append above settings
    cd packages/userscript
    pnpm build
    ```
-   The built userscript will be in `packages/userscript/dist/userscript.user.js`.
+   The built userscript will be in `packages/userscript/dist/vocabulary-ruby.user.js`.
 
-## Dependencies
+## Main Dependencies
 
 - **Vue 3**
 - **Vite** + **vite-plugin-monkey**
-- **Reka-UI** (Headless UI)
-- **UnoCSS** (Utility CSS)
-- **fflate** (Compression)
+- **Nuxt UI**
+- **UnoCSS**
