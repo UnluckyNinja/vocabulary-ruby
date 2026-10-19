@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useDictStore, useSettings } from '../composables/store'
-import { useRuby } from '../composables/useMatcher'
+import { useRuby } from '../composables/ruby'
 
 const { showSettings, quickDicts, quickStyle } = useSettings()
 function clickSettings() {

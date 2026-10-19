@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { FormSubmitEvent } from '@nuxt/ui'
+import { FormError, FormSubmitEvent } from '@nuxt/ui'
 import { computed, reactive } from 'vue'
 import { SiteRule, SiteRuleOptions, useDictStore } from '../composables/store'
+import { isValidSelector } from '../utils'
 
 const props = defineProps<{
   rule?: SiteRule
@@ -13,8 +14,8 @@ const emit = defineEmits<{
 }>()
 
 const placeholder = `\
-one
-two
+one,一
+two,二
 ...
 `
 
@@ -62,6 +63,37 @@ const selectedDicts = computed(() => {
   return dictItems.value.filter(it => state.dictionaries.includes(it.value))
 })
 
+const regex = /^(?:.+),(?:.+)$/
+function validate(state: Partial<SiteRuleOptions>): FormError[] {
+  const errors = []
+  // name
+  if (!state.name) errors.push({ name: 'name', message: '名称不能为空' })
+  // inlinlineDictionaryine
+  if (state.inlineDictionary) {
+    const words = state.inlineDictionary.split(/\r?\n/)
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i]
+      if (!regex.test(word)) {
+        errors.push({
+          name: 'inlineDictionary',
+          message: `第${i + 1}行 ${word} 不符合"原文单词,译文单词"格式`,
+        })
+      }
+    }
+  }
+  // selectors
+  if (state.selector?.root && !isValidSelector(state.selector.root)) {
+    errors.push({ name: 'selector.root', message: '该选择器无效' })
+  }
+  if (state.selector?.target && !isValidSelector(state.selector.target)) {
+    errors.push({ name: 'selector.target', message: '该选择器无效' })
+  }
+  if (state.selector?.ignore && !isValidSelector(state.selector.ignore)) {
+    errors.push({ name: 'selector.ignore', message: '该选择器无效' })
+  }
+  return errors
+}
+
 function onSubmit(event: FormSubmitEvent<SiteRuleOptions>) {
   emit('submit', event)
 }
@@ -76,12 +108,12 @@ function onSelectDictionaries(
 </script>
 
 <template>
-  <UForm class="relative flex flex-col" :state="state" @submit="onSubmit">
+  <UForm class="relative flex flex-col" :state="state" :validate="validate" @submit="onSubmit">
     <div class="flex-1">
       <UFormField class="mb-4" label="规则名称" name="name">
         <UInput v-model="state.name" size="xl" variant="ghost" icon="i-lucide:pen-line" />
       </UFormField>
-      <UFormField class="mb-4" label="启用/禁用" name="name">
+      <UFormField class="mb-4" label="启用/禁用" name="enabled">
         <USwitch v-model="state.enabled" />
       </UFormField>
       <UFormField class="mb-4" label="网址URL正则" name="urlRegex">

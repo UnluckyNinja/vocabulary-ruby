@@ -61,13 +61,17 @@ two,二
 const regex = /^(?:.+),(?:.+)$/
 function validate(state: Partial<Schema>): FormError[] {
   const errors = []
+  if (!state.name) errors.push({ name: 'name', message: '内容不能为空' })
   if (!state.content) errors.push({ name: 'content', message: '内容不能为空' })
-  const words = state.content?.split(/\r?\n/)
-  if (words) {
+  if (state.content) {
+    const words = state.content.trim().split(/\r?\n/)
     for (let i = 0; i < words.length; i++) {
       const word = words[i]
       if (!regex.exec(word)) {
-        errors.push({ name: 'content', message: `第${i + 1}行 ${word} 不符合"单词,单词"格式` })
+        errors.push({
+          name: 'content',
+          message: `第${i + 1}行 ${word} 不符合"原文单词,译文单词"格式`,
+        })
       }
     }
   }

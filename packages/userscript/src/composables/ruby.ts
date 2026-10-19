@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { createMatcher } from '../engine/matcher'
 import { DOMObserver } from '../engine/observer'
-import { createGlobalState } from '@vueuse/core'
+import { createGlobalState, useStyleTag } from '@vueuse/core'
 import { SiteRule, useDictStore } from './store'
 
 export const useRuby = createGlobalState(() => {
@@ -11,24 +11,25 @@ export const useRuby = createGlobalState(() => {
   const wordsMap = new Map<string, string>()
 
   const { getDictionaryContent } = useDictStore()
+  const { css, load, unload, isLoaded } = useStyleTag('', { immediate: false, manual: true })
 
   let restartCallback = () => {}
 
   async function startWithRule(rule: SiteRule) {
+    preparing.value = true
     if (running.value) {
       observer.stop()
     }
-    preparing.value = true
     wordsMap.clear()
     for (const id of rule.dictionaries) {
       const text = getDictionaryContent(id)
-      const lines = text.value.split(/\r?\n/)
+      const lines = text.value.trim().split(/\r?\n/)
       lines.forEach(line => {
         const pair = line.split(',')
         wordsMap.set(pair[0], pair[1])
       })
     }
-    const lines = rule.inlineDictionary.split(/\r?\n/)
+    const lines = rule.inlineDictionary.trim().split(/\r?\n/)
     lines.forEach(line => {
       const pair = line.split(',')
       wordsMap.set(pair[0], pair[1])
@@ -42,18 +43,20 @@ export const useRuby = createGlobalState(() => {
         ignoreSelector: rule.selector.ignore,
       })
     }
+    css.value = rule.style
+    load()
     restartCallback()
     preparing.value = false
   }
-  async function startSimple(dictionaryIDs: string[], _style: string) {
+  async function startSimple(dictionaryIDs: string[], style: string) {
+    preparing.value = true
     if (running.value) {
       observer.stop()
     }
-    preparing.value = true
     wordsMap.clear()
     for (const id of dictionaryIDs) {
       const text = getDictionaryContent(id)
-      const lines = text.value.split(/\r?\n/)
+      const lines = text.value.trim().split(/\r?\n/)
       lines.forEach(line => {
         const pair = line.split(',')
         wordsMap.set(pair[0], pair[1])
@@ -64,23 +67,29 @@ export const useRuby = createGlobalState(() => {
     restartCallback = () => {
       observer.start(matcher)
     }
+    css.value = style
+    load()
     restartCallback()
     preparing.value = false
   }
   function restart() {
+    preparing.value = true
     if (running.value) {
       observer.stop()
     }
-    preparing.value = true
+    load()
     restartCallback()
     preparing.value = false
   }
   function stop() {
+    unload()
+    css.value = ''
     observer.stop()
   }
   return {
     preparing,
     running,
+    isCssLoaded: isLoaded,
     startWithRule,
     startSimple,
     restart,
