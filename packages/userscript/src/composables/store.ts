@@ -51,6 +51,9 @@ export interface DictionaryOptions {
   type: 'local' | 'network'
   updateURL: string
   content: string
+  filter: {
+    minLength: number
+  }
 }
 
 export interface Dictionary {
@@ -60,6 +63,9 @@ export interface Dictionary {
   modifiedTime: number
   type: 'local' | 'network'
   updateURL: string
+  filter: {
+    minLength: number
+  }
 }
 
 function toContentID(id: string) {
@@ -87,6 +93,9 @@ export const useDictStore = createGlobalState(() => {
       modifiedTime: timestamp,
       type: options.type,
       updateURL: options.type === 'network' ? options.updateURL : '',
+      filter: {
+        minLength: options.filter.minLength,
+      },
     })
     saveContent(id, options.content)
     return id
@@ -104,9 +113,7 @@ export const useDictStore = createGlobalState(() => {
   function deleteDictionary(id: string) {
     return dicts.value.delete(id)
   }
-  /**
-   * @param options.content will be ignored, use `updateDictionaryContent`
-   */
+
   function updateDictionary(id: string, options: Partial<DictionaryOptions>) {
     if (!dicts.value.has(id)) {
       throw new Error(`Can't update, dictionary with ID doesn't exist: ${id}`)
@@ -117,6 +124,10 @@ export const useDictStore = createGlobalState(() => {
     if (options.type === 'network') {
       dict.updateURL = options.updateURL ?? dict.updateURL
     }
+    if (options.content !== undefined) {
+      saveContent(id, options.content)
+    }
+    dict.filter.minLength = options.filter?.minLength ?? dict.filter.minLength
   }
   function updateDictionaryContent(id: string, content: string) {
     if (!dicts.value.has(id)) {

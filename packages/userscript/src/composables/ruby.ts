@@ -12,7 +12,7 @@ export const useRuby = createGlobalState(() => {
   const wordsMap = new Map<string, string>()
   const mode = ref<'simple' | 'rule'>('simple')
 
-  const { getDictionaryContent } = useDictStore()
+  const { getDictionaryContent, getDictionary } = useDictStore()
   const { css, load, unload, isLoaded } = useStyleTag('', { immediate: false, manual: true })
 
   let restartCallback = () => {}
@@ -32,13 +32,17 @@ export const useRuby = createGlobalState(() => {
     wordsMap.clear()
     for (const id of rule.dictionaries) {
       const text = getDictionaryContent(id)
-      const words = csvParseRows(text.value)
-      words.forEach(([key, value]) => {
+      const dict = getDictionary(id)
+      const rows = csvParseRows(text.value)
+      rows.forEach(([key, value]) => {
+        if (key.length < dict!.filter.minLength) {
+          return
+        }
         wordsMap.set(key, value)
       })
     }
-    const words = csvParseRows(rule.inlineDictionary)
-    words.forEach(([key, value]) => {
+    const rows = csvParseRows(rule.inlineDictionary)
+    rows.forEach(([key, value]) => {
       wordsMap.set(key, value)
     })
     const matcher = await createMatcher(wordsMap)
@@ -67,8 +71,12 @@ export const useRuby = createGlobalState(() => {
     wordsMap.clear()
     for (const id of dictionaryIDs) {
       const text = getDictionaryContent(id)
-      const words = csvParseRows(text.value)
-      words.forEach(([key, value]) => {
+      const dict = getDictionary(id)
+      const rows = csvParseRows(text.value)
+      rows.forEach(([key, value]) => {
+        if (key.length < dict!.filter.minLength) {
+          return
+        }
         wordsMap.set(key, value)
       })
     }

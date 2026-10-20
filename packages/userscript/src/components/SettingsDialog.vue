@@ -30,13 +30,7 @@ const { showCreateDictionary, showCreateSiteRule } = useSettings()
 
 const searchText = ref('')
 
-const {
-  addDictionary,
-  listDictionaries,
-  updateDictionary,
-  updateDictionaryContent,
-  deleteDictionary,
-} = useDictStore()
+const { addDictionary, listDictionaries, updateDictionary, deleteDictionary } = useDictStore()
 
 const rawDictionaries = computed(() => {
   return [...listDictionaries()]
@@ -56,7 +50,6 @@ function onCreateDictionary(event: FormSubmitEvent<DictionaryOptions>) {
 }
 function onEditDictionary(dict: Dictionary, event: FormSubmitEvent<DictionaryOptions>) {
   updateDictionary(dict.id, event.data)
-  updateDictionaryContent(dict.id, event.data.content)
 }
 function onDeleteDictionary(dict: Dictionary) {
   deleteDictionary(dict.id)

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDictStore, useSettings } from '../composables/store'
 import { useRuby } from '../composables/ruby'
 import { useRuleMatch } from '../composables/rule'
@@ -36,7 +36,7 @@ function onSelectDictionaries(
   quickDicts.value = value.map(it => it.value)
 }
 
-const { running, preparing, startSimple, startWithRule, stop } = useRuby()
+const { running, preparing, startSimple, startWithRule, restart, stop } = useRuby()
 
 const activateButtonText = computed(() => {
   if (preparing.value) {
@@ -57,12 +57,34 @@ function onStop() {
 
 const { currentRule } = useRuleMatch()
 
+const ruleDirty = ref(true)
+const simpleDirty = ref(true)
+watch(selectedDicts, () => {
+  simpleDirty.value = true
+})
+watch(showSettings, () => {
+  simpleDirty.value = true
+  ruleDirty.value = true
+})
+
 function onStartSimple() {
-  startSimple(quickDicts.value, quickStyle.value)
+  if (simpleDirty.value) {
+    startSimple(quickDicts.value, quickStyle.value)
+    simpleDirty.value = false
+    ruleDirty.value = true
+  } else {
+    restart()
+  }
 }
 function onStartRule() {
   if (currentRule.value) {
-    startWithRule(currentRule.value)
+    if (ruleDirty.value) {
+      startWithRule(currentRule.value)
+      ruleDirty.value = false
+      simpleDirty.value = true
+    } else {
+      restart()
+    }
   }
 }
 </script>
@@ -81,6 +103,9 @@ function onStartRule() {
     <h3 class="mt-4">临时样式</h3>
     <UTextarea v-model="quickStyle" class="w-full" :rows="10"></UTextarea>
     <template #footer>
+      <div class="text-xs text-gray max-w-sm">
+        为优化体验，同种方式开关不会重新导入词典，若在其它页面修改过词典，请点击设置按钮触发重置缓存，或刷新页面
+      </div>
       <div class="flex flex-row items-stretch space-x-lg">
         <UButton v-if="preparing || running" block size="lg" :loading="preparing" @click="onStop">
           {{ activateButtonText }}
