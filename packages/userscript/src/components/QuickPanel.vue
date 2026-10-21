@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useDictStore, useSettings } from '../composables/store'
 import { useRuby } from '../composables/ruby'
 import { useRuleMatch } from '../composables/rule'
+import { RadioGroupItem } from '@nuxt/ui'
 
 const { showSettings, quickDicts, quickStyle } = useSettings()
 function clickSettings() {
@@ -36,7 +37,8 @@ function onSelectDictionaries(
   quickDicts.value = value.map(it => it.value)
 }
 
-const { css, flags, running, preparing, startSimple, startWithRule, restart, stop } = useRuby()
+const { rubyMode, css, flags, running, preparing, startSimple, startWithRule, restart, stop } =
+  useRuby()
 
 const activateButtonText = computed(() => {
   if (preparing.value) {
@@ -86,10 +88,34 @@ function onStartRule() {
     }
   }
 }
+
+const rubyModeItems = ref<RadioGroupItem[]>([
+  {
+    label: '注音模式',
+    value: 'both',
+  },
+  {
+    label: '翻译模式',
+    value: 'translation-only',
+    description: '仅译文',
+  },
+  {
+    label: '反转模式',
+    value: 'inverse',
+    description: '原文作为注音',
+  },
+])
 </script>
 
 <template>
   <UCard>
+    <h3>标记模式</h3>
+    <URadioGroup
+      v-model="rubyMode"
+      orientation="horizontal"
+      variant="list"
+      :items="rubyModeItems"
+    />
     <h3>临时词典</h3>
     <UListbox
       class="max-h-sm"

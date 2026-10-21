@@ -4,11 +4,23 @@ A Tampermonkey userscript that imports CSV dictionaries and automatically annota
 
 ## Usage
 
-[Install script manager (Tampermonkey, Vilentmonkey)](https://greasyfork.org/)
-Install script from https://greasyfork.org/zh-CN/scripts/601005 or github release
+[Install script manager (Tampermonkey, Vilentmonkey)](https://greasyfork.org/)  
+Install script from https://greasyfork.org/zh-CN/scripts/601005 or github release  
 
-1. Add a dictionary
+1. Add a dictionary, from sources like [vocaruby-ffxiv-dictionary](https://github.com/UnluckyNinja/vocaruby-ffxiv-dictionary)
 2. Create a site rule for it, or use it in the floating panel directly.
+
+Style example:
+```css
+ruby {
+  ruby-position: over;
+}
+
+rt {
+  font-size: 0.875em;
+  color: #888;
+}
+```
 
 ## Project Structure
 

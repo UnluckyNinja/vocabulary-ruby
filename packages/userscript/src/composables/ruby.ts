@@ -12,6 +12,7 @@ export const useRuby = createGlobalState(() => {
   const { running } = observer.status
   const wordsMap = new Map<string, string>()
   const mode = ref<'simple' | 'rule'>('simple')
+  const rubyMode = ref<'both' | 'translation-only' | 'inverse'>('both')
   const flags = reactive({
     ruleDirty: true,
     simpleDirty: true,
@@ -58,6 +59,7 @@ export const useRuby = createGlobalState(() => {
         rootSelector: rule.selector.root,
         targetSelector: rule.selector.target,
         ignoreSelector: rule.selector.ignore,
+        rubyMode: rubyMode.value,
       })
     }
     restartCallback()
@@ -90,7 +92,9 @@ export const useRuby = createGlobalState(() => {
     }
     const matcher = await createMatcher(wordsMap)
     restartCallback = () => {
-      observer.start(matcher)
+      observer.start(matcher, {
+        rubyMode: rubyMode.value,
+      })
     }
     restartCallback()
     preparing.value = false
@@ -111,6 +115,7 @@ export const useRuby = createGlobalState(() => {
   }
   return {
     mode,
+    rubyMode,
     flags,
     preparing,
     running,

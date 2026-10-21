@@ -10,6 +10,7 @@ export class DOMObserver {
   private rootSelector: string = ''
   private targetSelector: string = ''
   private ignoreSelector: string = ''
+  private rubyMode: 'both' | 'translation-only' | 'inverse' = 'both'
 
   private _status = { running: readonly(this.running) }
   get status() {
@@ -32,6 +33,7 @@ export class DOMObserver {
       rootSelector?: string
       targetSelector?: string
       ignoreSelector?: string
+      rubyMode?: 'both' | 'translation-only' | 'inverse'
     } = {},
   ) {
     this.running.value = true
@@ -39,6 +41,7 @@ export class DOMObserver {
     this.rootSelector = options.rootSelector ?? ''
     this.targetSelector = options.targetSelector ?? ''
     this.ignoreSelector = options.ignoreSelector ?? ''
+    this.rubyMode = options.rubyMode ?? this.rubyMode
     if (this.rootSelector) {
       const elements = [...document.querySelectorAll(this.rootSelector)].filter(
         el => !el.parentElement?.closest(this.rootSelector),
@@ -175,10 +178,26 @@ export class DOMObserver {
 
         // Ruby element
         const ruby = document.createElement('ruby')
-        ruby.textContent = originalText.slice(match.start, match.end)
-        const rt = document.createElement('rt')
-        rt.textContent = match.translation
-        ruby.appendChild(rt)
+        switch (this.rubyMode) {
+          case 'both': {
+            ruby.textContent = originalText.slice(match.start, match.end)
+            const rt = document.createElement('rt')
+            rt.textContent = match.translation
+            ruby.appendChild(rt)
+            break
+          }
+          case 'translation-only': {
+            ruby.textContent = match.translation
+            break
+          }
+          case 'inverse': {
+            ruby.textContent = match.translation
+            const rt = document.createElement('rt')
+            rt.textContent = originalText.slice(match.start, match.end)
+            ruby.appendChild(rt)
+            break
+          }
+        }
         container.appendChild(ruby)
 
         lastIndex = match.end

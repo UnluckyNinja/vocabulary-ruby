@@ -9,7 +9,7 @@ import {
 import { createGlobalState, useEventBus, useStorage } from '@vueuse/core'
 import { ref } from 'vue'
 
-export const defaultStyle = `
+export const defaultStyle = `\
 ruby {
   ruby-position: over;
 }
