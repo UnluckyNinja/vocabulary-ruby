@@ -87,25 +87,30 @@ function onDeleteSiteRule(rule: SiteRule) {
         MARK: dictionary list
       -->
       <!-- search bar -->
-      <UInput
-        class="w-full"
-        icon="i-lucide:search"
-        size="md"
-        variant="outline"
-        placeholder="筛选列表"
-        v-model="searchText"
-      >
-        <template v-if="searchText?.length" #trailing>
-          <UButton
-            class="cursor-pointer"
-            color="neutral"
-            variant="link"
-            icon="i-lucide-circle-x"
-            aria-label="取消过滤"
-            @click="searchText = ''"
-          />
-        </template>
-      </UInput>
+      <div class="flex flex-row gap-2">
+        <UInput
+          class="flex-1"
+          icon="i-lucide:search"
+          size="md"
+          variant="outline"
+          placeholder="筛选列表"
+          v-model="searchText"
+        >
+          <template v-if="searchText?.length" #trailing>
+            <UButton
+              class="cursor-pointer"
+              color="neutral"
+              variant="link"
+              icon="i-lucide-circle-x"
+              aria-label="取消过滤"
+              @click="searchText = ''"
+            />
+          </template>
+        </UInput>
+        <ImportURLsButton>
+          <UButton>批量导入</UButton>
+        </ImportURLsButton>
+      </div>
       <DictionaryList :dictionaries="dictionaries" :editable="true">
         <template #action="{ dict }">
           <!-- edit dictionary -->

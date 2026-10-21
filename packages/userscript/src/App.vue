@@ -26,7 +26,7 @@ const { showSettings } = useSettings()
 </script>
 
 <template>
-  <UApp>
+  <UApp :portal="portalTarget">
     <div>
       <FloatingWidget />
       <UModal

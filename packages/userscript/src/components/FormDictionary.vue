@@ -116,7 +116,7 @@ async function fetchContent() {
 <template>
   <UForm class="relative flex flex-col" :state="state" :validate="validate" @submit="onSubmit">
     <div class="flex-1 space-y-lg">
-      <UFormField label="词典名称" name="name">
+      <UFormField label="词典名称" name="name" required>
         <UInput v-model="state.name" size="xl" variant="ghost" icon="i-lucide:pen-line" />
       </UFormField>
       <UFormField label="词典类型" name="type">

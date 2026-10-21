@@ -9,12 +9,23 @@ import {
 import { createGlobalState, useEventBus, useStorage } from '@vueuse/core'
 import { ref } from 'vue'
 
+export const defaultStyle = `
+ruby {
+  ruby-position: over;
+}
+
+rt {
+  font-size: 0.875em;
+  color: #888;
+}
+`
+
 export const useSettings = createGlobalState(() => {
   const showSettings = ref(false)
   const showCreateDictionary = ref(false)
   const showCreateSiteRule = ref(false)
   const quickDicts = useStorage('quickDicts', [] as string[], GMStorage)
-  const quickStyle = useStorage('quickStyle', '', GMStorage)
+  const quickStyle = useStorage('quickStyle', defaultStyle, GMStorage)
 
   return {
     showSettings,

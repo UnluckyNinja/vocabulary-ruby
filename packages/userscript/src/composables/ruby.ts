@@ -4,6 +4,7 @@ import { DOMObserver } from '../engine/observer'
 import { createGlobalState, useStyleTag } from '@vueuse/core'
 import { SiteRule, useDictStore } from './store'
 import { csvParseRows } from 'd3-dsv'
+import { reactive } from 'vue'
 
 export const useRuby = createGlobalState(() => {
   const observer = new DOMObserver()
@@ -11,6 +12,10 @@ export const useRuby = createGlobalState(() => {
   const { running } = observer.status
   const wordsMap = new Map<string, string>()
   const mode = ref<'simple' | 'rule'>('simple')
+  const flags = reactive({
+    ruleDirty: true,
+    simpleDirty: true,
+  })
 
   const { getDictionaryContent, getDictionary } = useDictStore()
   const { css, load, unload, isLoaded } = useStyleTag('', { immediate: false, manual: true })
@@ -35,6 +40,7 @@ export const useRuby = createGlobalState(() => {
       const dict = getDictionary(id)
       const rows = csvParseRows(text.value)
       rows.forEach(([key, value]) => {
+        if (!key || !value) return
         if (key.length < dict!.filter.minLength) {
           return
         }
@@ -43,6 +49,7 @@ export const useRuby = createGlobalState(() => {
     }
     const rows = csvParseRows(rule.inlineDictionary)
     rows.forEach(([key, value]) => {
+      if (!key || !value) return
       wordsMap.set(key, value)
     })
     const matcher = await createMatcher(wordsMap)
@@ -74,6 +81,7 @@ export const useRuby = createGlobalState(() => {
       const dict = getDictionary(id)
       const rows = csvParseRows(text.value)
       rows.forEach(([key, value]) => {
+        if (!key || !value) return
         if (key.length < dict!.filter.minLength) {
           return
         }
@@ -103,8 +111,10 @@ export const useRuby = createGlobalState(() => {
   }
   return {
     mode,
+    flags,
     preparing,
     running,
+    css,
     isCssLoaded: isLoaded,
     startWithRule,
     startSimple,

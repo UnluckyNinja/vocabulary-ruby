@@ -53,6 +53,7 @@ export default defineConfig(({ command }) => ({
           'googleusercontent.com',
           'github.com',
           'raw.githubusercontent.com',
+          'release-assets.githubusercontent.com',
           '*',
         ],
       },

@@ -36,7 +36,7 @@ function onSelectDictionaries(
   quickDicts.value = value.map(it => it.value)
 }
 
-const { running, preparing, startSimple, startWithRule, restart, stop } = useRuby()
+const { css, flags, running, preparing, startSimple, startWithRule, restart, stop } = useRuby()
 
 const activateButtonText = computed(() => {
   if (preparing.value) {
@@ -57,31 +57,30 @@ function onStop() {
 
 const { currentRule } = useRuleMatch()
 
-const ruleDirty = ref(true)
-const simpleDirty = ref(true)
 watch(selectedDicts, () => {
-  simpleDirty.value = true
+  flags.simpleDirty = true
 })
 watch(showSettings, () => {
-  simpleDirty.value = true
-  ruleDirty.value = true
+  flags.simpleDirty = true
+  flags.ruleDirty = true
 })
 
 function onStartSimple() {
-  if (simpleDirty.value) {
+  if (flags.simpleDirty) {
     startSimple(quickDicts.value, quickStyle.value)
-    simpleDirty.value = false
-    ruleDirty.value = true
+    flags.simpleDirty = false
+    flags.ruleDirty = true
   } else {
+    css.value = quickStyle.value
     restart()
   }
 }
 function onStartRule() {
   if (currentRule.value) {
-    if (ruleDirty.value) {
+    if (flags.ruleDirty) {
       startWithRule(currentRule.value)
-      ruleDirty.value = false
-      simpleDirty.value = true
+      flags.ruleDirty = false
+      flags.simpleDirty = true
     } else {
       restart()
     }

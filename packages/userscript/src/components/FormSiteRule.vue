@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { FormError, FormSubmitEvent } from '@nuxt/ui'
 import { computed, reactive } from 'vue'
-import { SiteRule, SiteRuleOptions, useDictStore } from '../composables/store'
+import { defaultStyle, SiteRule, SiteRuleOptions, useDictStore } from '../composables/store'
 import { isValidSelector } from '../utils'
 import { csvFormatRow, csvParseRows } from 'd3-dsv'
 
@@ -31,7 +31,7 @@ const state = reactive<SiteRuleOptions>({
     target: '',
     ignore: '',
   },
-  style: '',
+  style: defaultStyle,
 })
 
 if (props.rule) {
@@ -64,11 +64,12 @@ const selectedDicts = computed(() => {
   return dictItems.value.filter(it => state.dictionaries.includes(it.value))
 })
 
-const regex = /^(?:.+),(?:.+)$/
 function validate(state: Partial<SiteRuleOptions>): FormError[] {
   const errors = []
   // name
   if (!state.name) errors.push({ name: 'name', message: '名称不能为空' })
+  if (state.urlRegex?.length === 0)
+    errors.push({ name: 'urlRegex', message: '请指定至少一个匹配规则' })
   // inlinlineDictionaryine
   if (state.inlineDictionary) {
     const words = csvParseRows(state.inlineDictionary)
@@ -117,13 +118,13 @@ function onDeleteUrlRegex(idx: number) {
 <template>
   <UForm class="relative flex flex-col" :state="state" :validate="validate" @submit="onSubmit">
     <div class="flex-1">
-      <UFormField class="mb-4" label="规则名称" name="name">
+      <UFormField class="mb-4" label="规则名称" name="name" required>
         <UInput v-model="state.name" size="xl" variant="ghost" icon="i-lucide:pen-line" />
       </UFormField>
       <UFormField class="mb-4" label="启用/禁用" name="enabled">
         <USwitch v-model="state.enabled" />
       </UFormField>
-      <UFormField class="mb-4" label="网址URL正则" name="urlRegex">
+      <UFormField class="mb-4" label="网址URL正则" name="urlRegex" required>
         <UFieldGroup v-for="(regex, idx) of state.urlRegex" class="w-full">
           <UButton class="whitespace-nowrap" variant="subtle"> /^ </UButton>
           <UInput
