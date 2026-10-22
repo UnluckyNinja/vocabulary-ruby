@@ -1,7 +1,13 @@
 <script lang="ts" setup>
 import { FormError, FormSubmitEvent } from '@nuxt/ui'
 import { computed, reactive } from 'vue'
-import { defaultStyle, SiteRule, SiteRuleOptions, useDictStore } from '../composables/store'
+import {
+  defaultStyle,
+  Dictionary,
+  SiteRule,
+  SiteRuleOptions,
+  useDictStore,
+} from '../composables/store'
 import { isValidSelector } from '../utils'
 import { csvFormatRow, csvParseRows } from 'd3-dsv'
 
@@ -44,25 +50,13 @@ if (props.rule) {
   state.style = props.rule.style
 }
 
-const { listDictionaries } = useDictStore()
-const dictItems = computed(() => {
-  return listDictionaries()
-    .map(it => {
-      return {
-        label: it.name,
-        value: it.id,
-      }
-    })
-    .toArray()
-    .sort((a, b) => {
-      const valueA = state.dictionaries.includes(a.value) ? 0 : 1
-      const valueB = state.dictionaries.includes(b.value) ? 0 : 1
-      return valueA - valueB
-    })
-})
+const { getDictionary } = useDictStore()
 const selectedDicts = computed(() => {
-  return dictItems.value.filter(it => state.dictionaries.includes(it.value))
+  return state.dictionaries.map(it => getDictionary(it)).filter(it => it !== undefined)
 })
+function sortQuickDicts(event: Dictionary[]) {
+  state.dictionaries = event.map(it => it.id)
+}
 
 function validate(state: Partial<SiteRuleOptions>): FormError[] {
   const errors = []
@@ -99,14 +93,7 @@ function validate(state: Partial<SiteRuleOptions>): FormError[] {
 function onSubmit(event: FormSubmitEvent<SiteRuleOptions>) {
   emit('submit', event)
 }
-function onSelectDictionaries(
-  value: {
-    label: string
-    value: string
-  }[],
-) {
-  state.dictionaries = value.map(it => it.value)
-}
+
 function onAddUrlRegex() {
   state.urlRegex.push(RegExp.escape(document.location.href))
 }
@@ -137,15 +124,12 @@ function onDeleteUrlRegex(idx: number) {
         </UFieldGroup>
         <UButton class="mt-2" block size="xs" @click="onAddUrlRegex">+</UButton>
       </UFormField>
-      <UFormField class="mb-4" label="词典" name="dictionaries">
-        <UListbox
-          class="max-h-sm"
-          multiple
-          filter
+      <UFormField class="mb-4" label="词典" name="dictionaries" description="词典优先级从低到高">
+        <SortableDictionaryList
           :modelValue="selectedDicts"
-          @update:modelValue="onSelectDictionaries"
-          :items="dictItems"
-        ></UListbox>
+          @update:modelValue="sortQuickDicts"
+        ></SortableDictionaryList>
+        <DictionarySelect v-model="state.dictionaries" class="mt-2" />
       </UFormField>
       <UFormField class="mb-4" label="额外词汇" name="inlineDictionary">
         <UTextarea

@@ -20,11 +20,11 @@ function onChangeName(dict: Dictionary, newName: string) {
 </script>
 <template>
   <div class="my-4">
-    <template v-if="dictionaries.length > 0">
+    <ul v-if="dictionaries.length > 0">
       <template v-for="(dict, idx) in dictionaries" :key="dict.id">
         <USeparator class="my-2" v-if="idx > 0"></USeparator>
         <!-- row item -->
-        <div class="flex flex-row gap-1 items-center">
+        <li class="flex flex-row gap-1 items-center">
           <!-- change name -->
           <UInput
             v-if="editable"
@@ -40,12 +40,10 @@ function onChangeName(dict: Dictionary, newName: string) {
           </div>
           <!-- action buttons -->
           <slot name="action" :dict="dict"></slot>
-        </div>
+        </li>
       </template>
-    </template>
-    <template v-else>
-      <UEmpty icon="i-lucide:book-dashed" title="未添加/找到词典"></UEmpty>
-    </template>
+    </ul>
+    <UEmpty v-else icon="i-lucide:book-dashed" title="未添加/找到词典"></UEmpty>
   </div>
 </template>
 

@@ -1,40 +1,21 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
-import { useDictStore, useSettings } from '../composables/store'
+import { Dictionary, useDictStore, useSettings } from '../composables/store'
 import { useRuby } from '../composables/ruby'
 import { useRuleMatch } from '../composables/rule'
 import { RadioGroupItem } from '@nuxt/ui'
 
+const { getDictionary } = useDictStore()
 const { showSettings, quickDicts, quickStyle } = useSettings()
+const quickDictsValue = computed(() => {
+  return quickDicts.value.map(it => getDictionary(it)).filter(it => it !== undefined)
+})
+function sortQuickDicts(event: Dictionary[]) {
+  quickDicts.value = event.map(it => it.id)
+}
+
 function clickSettings() {
   showSettings.value = true
-}
-const { listDictionaries } = useDictStore()
-const dictItems = computed(() => {
-  return listDictionaries()
-    .map(it => {
-      return {
-        label: it.name,
-        value: it.id,
-      }
-    })
-    .toArray()
-    .sort((a, b) => {
-      const valueA = quickDicts.value.includes(a.value) ? 0 : 1
-      const valueB = quickDicts.value.includes(b.value) ? 0 : 1
-      return valueA - valueB
-    })
-})
-const selectedDicts = computed(() => {
-  return dictItems.value.filter(it => quickDicts.value.includes(it.value))
-})
-function onSelectDictionaries(
-  value: {
-    label: string
-    value: string
-  }[],
-) {
-  quickDicts.value = value.map(it => it.value)
 }
 
 const { rubyMode, css, flags, running, preparing, startSimple, startWithRule, restart, stop } =
@@ -59,7 +40,7 @@ function onStop() {
 
 const { currentRule } = useRuleMatch()
 
-watch(selectedDicts, () => {
+watch(quickDicts, () => {
   flags.simpleDirty = true
 })
 watch(showSettings, () => {
@@ -117,14 +98,12 @@ const rubyModeItems = ref<RadioGroupItem[]>([
       :items="rubyModeItems"
     />
     <h3>临时词典</h3>
-    <UListbox
-      class="max-h-sm"
-      multiple
-      filter
-      :modelValue="selectedDicts"
-      @update:modelValue="onSelectDictionaries"
-      :items="dictItems"
-    ></UListbox>
+    <p class="text-gray text-sm">词典优先级从低到高</p>
+    <SortableDictionaryList
+      :modelValue="quickDictsValue"
+      @update:modelValue="sortQuickDicts"
+    ></SortableDictionaryList>
+    <DictionarySelect v-model="quickDicts" class="mt-2" />
     <h3 class="mt-4">临时样式</h3>
     <UTextarea v-model="quickStyle" class="w-full" :rows="10"></UTextarea>
     <template #footer>
@@ -137,7 +116,7 @@ const rubyModeItems = ref<RadioGroupItem[]>([
         </UButton>
         <template v-else>
           <UButton block size="lg" :loading="preparing" @click="onStartSimple">
-            {{ selectedDicts.length > 0 ? '启用临时翻译' : '请选择至少一个词典' }}
+            {{ quickDicts.length > 0 ? '启用临时翻译' : '请选择至少一个词典' }}
           </UButton>
           <UButton
             block
