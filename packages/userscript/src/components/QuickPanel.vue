@@ -98,7 +98,7 @@ const rubyModeItems = ref<RadioGroupItem[]>([
       :items="rubyModeItems"
     />
     <h3>临时词典</h3>
-    <p class="text-gray text-sm">词典优先级从低到高</p>
+    <p class="text-muted text-sm">词典优先级从低到高</p>
     <SortableDictionaryList
       :modelValue="quickDictsValue"
       @update:modelValue="sortQuickDicts"
@@ -107,10 +107,10 @@ const rubyModeItems = ref<RadioGroupItem[]>([
     <h3 class="mt-4">临时样式</h3>
     <UTextarea v-model="quickStyle" class="w-full" :rows="10"></UTextarea>
     <template #footer>
-      <div class="text-xs text-gray max-w-sm">
+      <div class="text-xs text-muted max-w-sm">
         为优化体验，同种方式开关不会重新导入词典，若在其它页面修改过词典，请点击设置按钮触发重置缓存，或刷新页面
       </div>
-      <div class="flex flex-row items-stretch space-x-lg">
+      <div class="flex flex-row items-stretch space-x-18px">
         <UButton v-if="preparing || running" block size="lg" :loading="preparing" @click="onStop">
           {{ activateButtonText }}
         </UButton>

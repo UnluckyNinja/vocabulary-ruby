@@ -104,7 +104,7 @@ function onDeleteUrlRegex(idx: number) {
 
 <template>
   <UForm class="relative flex flex-col" :state="state" :validate="validate" @submit="onSubmit">
-    <div class="flex-1">
+    <div class="flex-1 space-y-18px">
       <UFormField class="mb-4" label="规则名称" name="name" required>
         <UInput v-model="state.name" size="xl" variant="ghost" icon="i-lucide:pen-line" />
       </UFormField>

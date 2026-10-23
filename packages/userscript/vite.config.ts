@@ -25,6 +25,25 @@ export default defineConfig(({ command }) => ({
         colors: {
           primary: 'red',
         },
+        modal: {
+          compoundVariants: [
+            {
+              scrollable: true,
+              fullscreen: false,
+              class: {
+                overlay: 'grid place-items-center p-4 sm:py-8',
+              },
+            },
+            {
+              scrollable: false,
+              fullscreen: false,
+              class: {
+                content:
+                  'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[calc(100dvh-var(--spacing)*2)] sm:max-h-[calc(100dvh-var(--spacing)*4)] overflow-hidden',
+              },
+            },
+          ],
+        },
       },
     }),
     UnoCSS(),

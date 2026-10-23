@@ -3,33 +3,39 @@
 
 #vocabulary-ruby {
   font-size: 16px;
-  --spacing: calc(0.25rem * var(--vb-scale));
-  --container-xs: calc(20rem * var(--vb-scale));
-  --container-sm: calc(24rem * var(--vb-scale));
-  --container-md: calc(28rem * var(--vb-scale));
-  --container-lg: calc(32rem * var(--vb-scale));
-  --container-2xl: calc(42rem * var(--vb-scale));
-  --container-3xl: calc(48rem * var(--vb-scale));
-  --text-xs: calc(0.75rem * var(--vb-scale));
+  --spacing: calc(4px * var(--vb-scale));
+  --container-xs: calc(calc(16px * 20) * var(--vb-scale));
+  --container-sm: calc(calc(16px * 24) * var(--vb-scale));
+  --container-md: calc(calc(16px * 28) * var(--vb-scale));
+  --container-lg: calc(calc(16px * 32) * var(--vb-scale));
+  --container-2xl: calc(calc(16px * 42) * var(--vb-scale));
+  --container-3xl: calc(calc(16px * 48) * var(--vb-scale));
+  --text-xs: calc(12px * var(--vb-scale));
   --text-xs--line-height: calc(1 / 0.75);
-  --text-sm: calc(0.875rem * var(--vb-scale));
+  --text-sm: calc(14px * var(--vb-scale));
   --text-sm--line-height: calc(1.25 / 0.875);
-  --text-base: calc(1rem * var(--vb-scale));
+  --text-base: calc(16px * var(--vb-scale));
   --text-base--line-height: calc(1.5 / 1);
-  --text-lg: calc(1.125rem * var(--vb-scale));
+  --text-lg: calc(18px * var(--vb-scale));
   --text-lg--line-height: calc(1.75 / 1.125);
-  --text-xl: calc(1.25rem * var(--vb-scale));
+  --text-xl: calc(20px * var(--vb-scale));
   --text-xl--line-height: calc(1.75 / 1.25);
-  --text-2xl: calc(1.5rem * var(--vb-scale));
+  --text-2xl: calc(24px * var(--vb-scale));
   --text-2xl--line-height: calc(2 / 1.5);
-  --text-3xl: calc(1.875rem * var(--vb-scale));
+  --text-3xl: calc(30px * var(--vb-scale));
   --text-3xl--line-height: calc(2.25 / 1.875);
-  --text-4xl: calc(2.25rem * var(--vb-scale));
+  --text-4xl: calc(36px * var(--vb-scale));
   --text-4xl--line-height: calc(2.5 / 2.25);
-  --text-5xl: calc(3rem * var(--vb-scale));
+  --text-5xl: calc(48px * var(--vb-scale));
   --text-5xl--line-height: 1;
-  --text-7xl: calc(4.5rem * var(--vb-scale));
+  --text-6xl: calc(60px * var(--vb-scale));
+  --text-6xl--line-height: 1;
+  --text-7xl: calc(72px * var(--vb-scale));
   --text-7xl--line-height: 1;
+
+  --ui-header-height: 64px;
+  --ui-radius: 4px;
+  --ui-container: 1280px;
 
   --font-sans:
     -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
