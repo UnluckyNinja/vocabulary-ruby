@@ -6,7 +6,7 @@ export interface MatchResult {
   translation: string
 }
 
-export type Matcher = (text: string) => MatchResult[]
+export type Matcher = (text: string, segments?: Intl.Segments) => MatchResult[]
 
 /**
  * Creates a matcher function from a dictionary.
@@ -16,7 +16,7 @@ export async function createMatcher(dictionary: Map<string, string>): Promise<Ma
 
   const { findWords } = await prepareSearchAsync([...dictionary.keys()])
 
-  return (text: string) => {
+  return (text: string, segments?: Intl.Segments) => {
     if (!text) return []
 
     function getTranslation(start: number, end: number) {
@@ -24,7 +24,12 @@ export async function createMatcher(dictionary: Map<string, string>): Promise<Ma
       return dictionary.get(word)
     }
 
-    const words = refineMatches(findWords(text)).map(it => {
+    let results = findWords(text)
+    if (segments) {
+      results = segmentMatch(segments, results)
+    }
+
+    const words = refineMatches(results).map(it => {
       return {
         start: it.start,
         end: it.end,
@@ -33,4 +38,12 @@ export async function createMatcher(dictionary: Map<string, string>): Promise<Ma
     })
     return words
   }
+}
+
+export function segmentMatch(segments: Intl.Segments, matches: { start: number; end: number }[]) {
+  const indices = new Set<number>()
+  for (const { index } of segments) {
+    indices.add(index)
+  }
+  return matches.filter(item => indices.has(item.start))
 }

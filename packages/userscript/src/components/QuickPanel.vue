@@ -6,7 +6,7 @@ import { useRuleMatch } from '../composables/rule'
 import { RadioGroupItem } from '@nuxt/ui'
 
 const { getDictionary } = useDictStore()
-const { showSettings, quickDicts, quickStyle } = useSettings()
+const { showSettings, quickDicts, quickStyle, segmenterLocale } = useSettings()
 const quickDictsValue = computed(() => {
   return quickDicts.value.map(it => getDictionary(it)).filter(it => it !== undefined)
 })
@@ -86,8 +86,78 @@ const rubyModeItems = ref<RadioGroupItem[]>([
     description: '原文作为注音',
   },
 ])
-</script>
 
+// MARK: Segement Locale
+const inputLocale = ref('')
+const localeInputFocus = ref(false)
+const isInputLocaleValid = ref(false)
+const locale = ref({
+  label: '',
+  code: '',
+})
+if (!segmenterLocale.value) {
+  locale.value = {
+    label: '（空）',
+    code: '',
+  }
+}
+watch(locale, newVal => {
+  segmenterLocale.value = newVal.code
+})
+
+function isLocaleValid(locale: Intl.Locale) {
+  return locale.maximize().region !== undefined
+}
+
+// only update actual locale value when input is valid, otherwise ignore.
+function updateInputLocaleCode(value: string) {
+  if (!value) {
+    isInputLocaleValid.value = true
+    inputLocale.value = ''
+    return
+  }
+  try {
+    const loc = new Intl.Locale(value)
+    isInputLocaleValid.value = isLocaleValid(loc)
+    if (isInputLocaleValid.value) {
+      inputLocale.value = value
+    }
+  } catch (e) {
+    isInputLocaleValid.value = false
+    return
+  }
+}
+
+const possibleValues = computed(() => {
+  if (!isInputLocaleValid.value || !inputLocale.value) {
+    return [
+      locale.value,
+      ...(locale.value.code ? [{ label: '（空）', code: '' }] : []),
+      ...navigator.languages
+        .filter(it => it !== locale.value.code)
+        .map(it => {
+          return {
+            label: it,
+            code: it,
+          }
+        }),
+    ]
+  }
+  const loc = new Intl.Locale(inputLocale.value)
+  return new Set([loc.baseName, loc.maximize().baseName])
+    .values()
+    .map(it => {
+      return {
+        label: it,
+        code: it,
+      }
+    })
+    .toArray()
+})
+
+const body = document.body
+</script>
+<!-- MARK: Template -->
 <template>
   <UCard>
     <h3>标记模式</h3>
@@ -96,6 +166,32 @@ const rubyModeItems = ref<RadioGroupItem[]>([
       orientation="horizontal"
       variant="list"
       :items="rubyModeItems"
+    />
+    <h3>
+      分词过滤
+      <UTooltip
+        text="指定时将对比Intl.Segmenter分词结果，只保留出现在分词开头的匹配。空则不使用"
+        :delayDuration="200"
+      >
+        <UIcon name="i-lucide:circle-question-mark" class="cursor-help inline-block"></UIcon>
+      </UTooltip>
+    </h3>
+    <UInputMenu
+      class=""
+      v-model="locale"
+      :icon="
+        localeInputFocus
+          ? isInputLocaleValid
+            ? 'i-lucide-check'
+            : 'i-lucide-x'
+          : 'i-lucide-text-cursor'
+      "
+      :portal="false"
+      @focus="localeInputFocus = true"
+      @focusout="localeInputFocus = false"
+      @update:search-term="updateInputLocaleCode"
+      :items="possibleValues"
+      ignoreFilter
     />
     <h3>临时词典</h3>
     <p class="text-muted text-sm">词典优先级从低到高</p>

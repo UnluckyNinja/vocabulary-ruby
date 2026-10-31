@@ -26,6 +26,12 @@ export const useSettings = createGlobalState(() => {
   const showCreateSiteRule = ref(false)
   const quickDicts = useStorage('quickDicts', [] as string[], GMStorage)
   const quickStyle = useStorage('quickStyle', defaultStyle, GMStorage)
+  const rubyMode = useStorage<'both' | 'translation-only' | 'inverse'>(
+    'ruby-mode',
+    'both',
+    GMStorage,
+  )
+  const segmenterLocale = useStorage('quick-segmenter-locale', 'en-US', GMStorage)
 
   return {
     showSettings,
@@ -33,6 +39,8 @@ export const useSettings = createGlobalState(() => {
     showCreateSiteRule,
     quickDicts,
     quickStyle,
+    rubyMode,
+    segmenterLocale,
   }
 })
 

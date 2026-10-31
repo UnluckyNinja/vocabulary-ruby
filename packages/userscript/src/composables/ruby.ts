@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { createMatcher } from '../engine/matcher'
 import { DOMObserver } from '../engine/observer'
 import { createGlobalState, useStyleTag } from '@vueuse/core'
-import { SiteRule, useDictStore } from './store'
+import { SiteRule, useDictStore, useSettings } from './store'
 import { csvParseRows } from 'd3-dsv'
 import { reactive } from 'vue'
 
@@ -12,11 +12,12 @@ export const useRuby = createGlobalState(() => {
   const { running } = observer.status
   const wordsMap = new Map<string, string>()
   const mode = ref<'simple' | 'rule'>('simple')
-  const rubyMode = ref<'both' | 'translation-only' | 'inverse'>('both')
   const flags = reactive({
     ruleDirty: true,
     simpleDirty: true,
   })
+
+  const { rubyMode, segmenterLocale } = useSettings()
 
   const { getDictionaryContent, getDictionary } = useDictStore()
   const { css, load, unload, isLoaded } = useStyleTag('', { immediate: false, manual: true })
@@ -60,6 +61,7 @@ export const useRuby = createGlobalState(() => {
         targetSelector: rule.selector.target,
         ignoreSelector: rule.selector.ignore,
         rubyMode: rubyMode.value,
+        segmenterLocale: segmenterLocale.value,
       })
     }
     restartCallback()
@@ -94,6 +96,7 @@ export const useRuby = createGlobalState(() => {
     restartCallback = () => {
       observer.start(matcher, {
         rubyMode: rubyMode.value,
+        segmenterLocale: segmenterLocale.value,
       })
     }
     restartCallback()

@@ -7,10 +7,13 @@ export class DOMObserver {
   private observer: MutationObserver
   private intersectionObserver: IntersectionObserver
   private processedElements: WeakSet<Element> = new WeakSet()
+
+  // options
   private rootSelector: string = ''
   private targetSelector: string = ''
   private ignoreSelector: string = ''
   private rubyMode: 'both' | 'translation-only' | 'inverse' = 'both'
+  private segmenter: Intl.Segmenter | null = null
 
   private _status = { running: readonly(this.running) }
   get status() {
@@ -34,8 +37,14 @@ export class DOMObserver {
       targetSelector?: string
       ignoreSelector?: string
       rubyMode?: 'both' | 'translation-only' | 'inverse'
+      segmenterLocale?: string
     } = {},
   ) {
+    if (options.segmenterLocale) {
+      this.segmenter = new Intl.Segmenter(options.segmenterLocale, {
+        granularity: 'word',
+      })
+    }
     this.running.value = true
     this.matcher = matcher
     this.rootSelector = options.rootSelector ?? ''
@@ -69,6 +78,7 @@ export class DOMObserver {
     this.rootSelector = ''
     this.targetSelector = ''
     this.ignoreSelector = ''
+    this.segmenter = null
     this.observer.disconnect()
     this.intersectionObserver.disconnect()
     this.cleanup()
@@ -150,7 +160,12 @@ export class DOMObserver {
       const text = node.textContent || ''
       if (!text.trim()) continue
 
-      const matches = this.matcher(text)
+      let matches
+      if (this.segmenter) {
+        matches = this.matcher(text, this.segmenter.segment(text))
+      } else {
+        matches = this.matcher(text)
+      }
       if (matches.length > 0) {
         this.injectRuby(node as Text, matches)
       }
