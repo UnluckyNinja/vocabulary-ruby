@@ -12,7 +12,7 @@ export type Matcher = (text: string) => MatchResult[]
  * Creates a matcher function from a dictionary.
  */
 export async function createMatcher(dictionary: Map<string, string>): Promise<Matcher> {
-  console.log('[VocabularyRuby] Matcher created with dictionary size:', dictionary.size)
+  console.debug('[VocabularyRuby] Matcher created with dictionary size:', dictionary.size)
 
   const { findWords } = await prepareSearchAsync([...dictionary.keys()])
 

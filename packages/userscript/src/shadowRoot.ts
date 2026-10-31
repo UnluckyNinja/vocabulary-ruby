@@ -12,8 +12,9 @@ element.classList.add('isolate')
 element.classList.add('font-sans')
 shadowRoot.appendChild(element)
 
-const fontSize = window.getComputedStyle(document.documentElement).fontSize
+// const fontSize = window.getComputedStyle(document.documentElement).fontSize
 
-element.style.setProperty('--vb-scale', (16 / Math.min(parseFloat(fontSize), 16)).toString())
+// element.style.setProperty('--vb-scale', (16 / Math.min(parseFloat(fontSize), 16)).toString())
+element.style.setProperty('--vb-scale', '1')
 
 export { wrapper, shadowRoot, element as portalTarget }
