@@ -100,6 +100,11 @@ if (!segmenterLocale.value) {
     label: '（空）',
     code: '',
   }
+} else {
+  locale.value = {
+    label: segmenterLocale.value,
+    code: segmenterLocale.value,
+  }
 }
 watch(locale, newVal => {
   segmenterLocale.value = newVal.code
